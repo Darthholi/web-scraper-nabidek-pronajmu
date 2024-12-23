@@ -23,7 +23,8 @@ class ScraperBezrealitky(ScraperBase):
     API: ClassVar[str] = "https://api.bezrealitky.cz/"
     OFFER_TYPE: ClassVar[str] = "PRONAJEM"
     ESTATE_TYPE: ClassVar[str] = "BYT"
-    BRNO: ClassVar[str] = "R438171"
+    # BRNO: ClassVar[str] = "R438171"
+    KOLIN: ClassVar[str] = "R441315"
 
     class Routes(abstract):
         GRAPHQL: ClassVar[str] = "graphql/"

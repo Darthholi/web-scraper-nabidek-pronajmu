@@ -21,6 +21,34 @@ class ScraperEuroBydleni(ScraperBase):
     color = 0xFA0F54
     base_url = "https://www.eurobydleni.cz/search-form"
 
+    loc = {
+        "Brno": {
+            "sql[locality][locality][input]": "Brno, Česko",
+            "sql[locality][locality][city]": "Brno, Česko",
+            "sql[locality][locality][zip_code]": "",
+            "sql[locality][locality][types]": "locality",
+            "sql[locality][location][lat]": "49.1950602",
+            "sql[locality][location][lng]": "16.6068371",
+            "sql[locality][viewport][south]": "49.10965517428777",
+            "sql[locality][viewport][west]": "16.42806782678905",
+            "sql[locality][viewport][north]": "49.294484956308",
+            "sql[locality][viewport][east]": "16.72785321479357",
+        },
+        "Kolin": {
+            "sql[locality][locality][input]": "Kolín, Česko",
+            "sql[locality][locality][city]": "Kolín, Česko",
+            "sql[locality][locality][zip_code]": "",
+            "sql[locality][locality][types]": "locality",
+            "sql[locality][location][lat]": "50.02814",
+            "sql[locality][location][lng]": "15.20057",
+            "sql[locality][viewport][south]": "49.9s2814",
+            "sql[locality][viewport][west]": "15.05057",
+            "sql[locality][viewport][north]": "50.12814",
+            "sql[locality][viewport][east]": "15.35057",
+        }
+    }
+    self.locsetting = "Kolin"
+
     cookies = {"listing-sort": "sort-added"}
     disposition_mapping = {
         Disposition.FLAT_1: 15,
@@ -47,21 +75,12 @@ class ScraperEuroBydleni(ScraperBase):
             "sql[usable_area_max]": "",
             "sql[estate_area_min]": "",
             "sql[estate_area_max]": "",
-            "sql[locality][locality][input]": "Brno, Česko",
-            "sql[locality][locality][city]": "Brno, Česko",
-            "sql[locality][locality][zip_code]": "",
-            "sql[locality][locality][types]": "locality",
-            "sql[locality][location][lat]": "49.1950602",
-            "sql[locality][location][lng]": "16.6068371",
-            "sql[locality][viewport][south]": "49.10965517428777",
-            "sql[locality][viewport][west]": "16.42806782678905",
-            "sql[locality][viewport][north]": "49.294484956308",
-            "sql[locality][viewport][east]": "16.72785321479357",
             "sql[poptavka][jmeno]": "",
             "sql[poptavka][prijmeni]": "",
             "sql[poptavka][email]": "",
             "sql[poptavka][telefon]": ""
         }
+        request_data.update(self.loc[self.locsetting])
 
         logging.debug("EuroBydlení request: %s", json.dumps(request_data))
 

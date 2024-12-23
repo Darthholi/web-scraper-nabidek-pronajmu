@@ -16,6 +16,18 @@ from scrapers.scraper_ulov_domov import ScraperUlovDomov
 from scrapers.scraper_bezrealitky import ScraperBezrealitky
 
 
+scrapper_classes = {scrapper.name for scrapper in [ScraperBravis,
+        ScraperEuroBydleni,
+        ScraperIdnesReality,
+        ScraperRealcity,
+        ScraperRealingo,
+        ScraperRemax,
+        ScraperSreality,
+        ScraperUlovDomov,
+        ScraperBezrealitky]}
+
+
+
 def create_scrapers(dispositions: Disposition) -> list[ScraperBase]:
     return [
         ScraperBravis(dispositions),

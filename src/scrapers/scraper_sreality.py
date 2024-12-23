@@ -107,10 +107,11 @@ class ScraperSreality(ScraperBase):
             "/" + str(offer["hash_id"]))
 
     def build_response(self) -> requests.Response:
-        url = self.base_url + "/api/cs/v2/estates?category_main_cb=1&category_sub_cb="
-        url += "|".join(self.get_dispositions_data())
-        url += "&category_type_cb=2&locality_district_id=72&locality_region_id=14&per_page=20"
-        url += "&tms=" + str(int(time()))
+        #url = self.base_url + "/api/cs/v2/estates?category_main_cb=1&category_sub_cb="
+        #url += "|".join(self.get_dispositions_data())
+        #url += "&category_type_cb=2&locality_district_id=72&locality_region_id=14&per_page=20"
+        #url += "&tms=" + str(int(time()))
+        url = "https://www.sreality.cz/hledani/prodej/byty?region=Kol%C3%ADn&region-id=3412&region-typ=municipality"
 
         logging.debug("Sreality request: %s", url)
 

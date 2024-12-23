@@ -18,6 +18,22 @@ class ScraperRealingo(ScraperBase):
     color = 0x00BC78
     base_url = "https://www.realingo.cz/graphql"
 
+    _base_config = {
+            "query": "query SearchOffer($purpose: OfferPurpose, $property: PropertyType, $saved: Boolean, $categories: [OfferCategory!], $area: RangeInput, $plotArea: RangeInput, $price: RangeInput, $bounds: GpsBoundsInput, $address: String, $transportType: TransportType, $toleration: Float, $buildingTypes: [BuildingType!], $buildingStatuses: [BuildingStatus!], $buildingPositions: [BuildingPosition!], $houseTypes: [HouseType!], $floor: RangeInput, $ownershipStatuses: [OwnershipStatus!], $furnitureStatuses: [FurnitureStatus!], $maxAge: Int, $contactType: ContactType, $geometry: GeoJSONGeometry, $sort: OfferSort = NEWEST, $first: Int = 20, $skip: Int = 0) {\n  addressGeometry(\n    address: $address\n    geometry: $geometry\n    toleration: $toleration\n    transportType: $transportType\n  ) {\n    geometry\n    mask\n  }\n  searchOffer(\n    filter: {purpose: $purpose, property: $property, saved: $saved, address: $address, transportType: $transportType, toleration: $toleration, categories: $categories, area: $area, plotArea: $plotArea, price: $price, bounds: $bounds, buildingTypes: $buildingTypes, buildingStatuses: $buildingStatuses, buildingPositions: $buildingPositions, houseTypes: $houseTypes, floor: $floor, ownershipStatuses: $ownershipStatuses, furnitureStatuses: $furnitureStatuses, maxAge: $maxAge, contactType: $contactType, geometry: $geometry}\n    sort: $sort\n    first: $first\n    skip: $skip\n    save: true\n  ) {\n    location {\n      id\n      type\n      url\n      name\n      neighbours {\n        id\n        type\n        url\n        name\n      }\n      breadcrumbs {\n        url\n        name\n      }\n      relatedSearch {\n        ...SearchParametersAttributes\n      }\n      center\n    }\n    items {\n      ...SearchOfferAttributes\n    }\n    total\n  }\n}\n\nfragment FilterAttributes on OfferFilter {\n  purpose\n  property\n  categories\n  address\n  location {\n    name\n  }\n  toleration\n  transportType\n  bounds {\n    northEast {\n      latitude\n      longitude\n    }\n    southWest {\n      latitude\n      longitude\n    }\n  }\n  saved\n  geometry\n  area {\n    from\n    to\n  }\n  plotArea {\n    from\n    to\n  }\n  price {\n    from\n    to\n  }\n  buildingTypes\n  buildingStatuses\n  buildingPositions\n  houseTypes\n  floor {\n    from\n    to\n  }\n  ownershipStatuses\n  furnitureStatuses\n  maxAge\n  contactType\n}\n\nfragment SearchParametersAttributes on SearchParameters {\n  filter {\n    ...FilterAttributes\n  }\n  page\n  priceMap\n  sort\n}\n\nfragment SearchOfferAttributes on Offer {\n  id\n  url\n  purpose\n  property\n  visited\n  liked\n  reserved\n  createdAt\n  category\n  purpose\n  property\n  price {\n    total\n    canonical\n    currency\n  }\n  area {\n    main\n    plot\n  }\n  photos {\n    main\n  }\n  location {\n    address\n    addressUrl\n    locationPrecision\n    latitude\n    longitude\n  }\n}\n",
+            "operationName": "SearchOffer",
+            "variables": {
+                "purpose": [], #"RENT",
+                "property": [], #"FLAT",
+                "address": [], #"Kolin",
+                "saved": False,
+                "categories": [],  # dispositions
+                "sort": "NEWEST",
+                "first": 300,
+                "skip": 0
+            }
+        }
+
+    """
     disposition_mapping = {
         Disposition.FLAT_1KK: "FLAT1_KK",
         Disposition.FLAT_1: "FLAT11",
@@ -30,27 +46,18 @@ class ScraperRealingo(ScraperBase):
         Disposition.FLAT_5_UP: ("FLAT5_KK", "FLAT51", "FLAT6_AND_MORE"),
         Disposition.FLAT_OTHERS: "OTHERS_FLAT",
     }
+    """
+
+    def __init__(self, config):
+        super().__init__(config)
 
 
     def build_response(self) -> requests.Response:
-        json_request = {
-            "query": "query SearchOffer($purpose: OfferPurpose, $property: PropertyType, $saved: Boolean, $categories: [OfferCategory!], $area: RangeInput, $plotArea: RangeInput, $price: RangeInput, $bounds: GpsBoundsInput, $address: String, $transportType: TransportType, $toleration: Float, $buildingTypes: [BuildingType!], $buildingStatuses: [BuildingStatus!], $buildingPositions: [BuildingPosition!], $houseTypes: [HouseType!], $floor: RangeInput, $ownershipStatuses: [OwnershipStatus!], $furnitureStatuses: [FurnitureStatus!], $maxAge: Int, $contactType: ContactType, $geometry: GeoJSONGeometry, $sort: OfferSort = NEWEST, $first: Int = 20, $skip: Int = 0) {\n  addressGeometry(\n    address: $address\n    geometry: $geometry\n    toleration: $toleration\n    transportType: $transportType\n  ) {\n    geometry\n    mask\n  }\n  searchOffer(\n    filter: {purpose: $purpose, property: $property, saved: $saved, address: $address, transportType: $transportType, toleration: $toleration, categories: $categories, area: $area, plotArea: $plotArea, price: $price, bounds: $bounds, buildingTypes: $buildingTypes, buildingStatuses: $buildingStatuses, buildingPositions: $buildingPositions, houseTypes: $houseTypes, floor: $floor, ownershipStatuses: $ownershipStatuses, furnitureStatuses: $furnitureStatuses, maxAge: $maxAge, contactType: $contactType, geometry: $geometry}\n    sort: $sort\n    first: $first\n    skip: $skip\n    save: true\n  ) {\n    location {\n      id\n      type\n      url\n      name\n      neighbours {\n        id\n        type\n        url\n        name\n      }\n      breadcrumbs {\n        url\n        name\n      }\n      relatedSearch {\n        ...SearchParametersAttributes\n      }\n      center\n    }\n    items {\n      ...SearchOfferAttributes\n    }\n    total\n  }\n}\n\nfragment FilterAttributes on OfferFilter {\n  purpose\n  property\n  categories\n  address\n  location {\n    name\n  }\n  toleration\n  transportType\n  bounds {\n    northEast {\n      latitude\n      longitude\n    }\n    southWest {\n      latitude\n      longitude\n    }\n  }\n  saved\n  geometry\n  area {\n    from\n    to\n  }\n  plotArea {\n    from\n    to\n  }\n  price {\n    from\n    to\n  }\n  buildingTypes\n  buildingStatuses\n  buildingPositions\n  houseTypes\n  floor {\n    from\n    to\n  }\n  ownershipStatuses\n  furnitureStatuses\n  maxAge\n  contactType\n}\n\nfragment SearchParametersAttributes on SearchParameters {\n  filter {\n    ...FilterAttributes\n  }\n  page\n  priceMap\n  sort\n}\n\nfragment SearchOfferAttributes on Offer {\n  id\n  url\n  purpose\n  property\n  visited\n  liked\n  reserved\n  createdAt\n  category\n  purpose\n  property\n  price {\n    total\n    canonical\n    currency\n  }\n  area {\n    main\n    plot\n  }\n  photos {\n    main\n  }\n  location {\n    address\n    addressUrl\n    locationPrecision\n    latitude\n    longitude\n  }\n}\n",
-            "operationName": "SearchOffer",
-            "variables": {
-                "purpose": "RENT",
-                "property": "FLAT",
-                "address": "Kolin",
-                "saved": False,
-                "categories": self.get_dispositions_data(),
-                "sort": "NEWEST",
-                "first": 300,
-                "skip": 0
-            }
-        }
+        
 
-        logging.debug("realingo request: %s", json.dumps(json_request))
+        logging.debug("realingo request: %s", json.dumps(self._config))
 
-        return requests.post(self.base_url, headers=self.headers, json=json_request)
+        return requests.post(self.base_url, headers=self.headers, json=self._config)
 
 
     def category_to_string(self, id) -> str:

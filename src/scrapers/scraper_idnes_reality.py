@@ -14,10 +14,15 @@ from bs4 import BeautifulSoup
 
 class ScraperIdnesReality(ScraperBase):
 
-    name = "iDNES Reality"
+    name = "iDNESReality"
     logo_url = "https://sta-reality2.1gr.cz/ui/image/favicons/favicon-32x32.png"
     color = 0x1D80D7
+    base_url = "https://reality.idnes.cz/s/"
 
+    _base_config = {"url": base_url}
+
+
+    """
     disposition_mapping = {
         Disposition.FLAT_1KK: "s-qc%5BsubtypeFlat%5D%5B%5D=1k",
         Disposition.FLAT_1: "s-qc%5BsubtypeFlat%5D%5B%5D=11",
@@ -34,14 +39,14 @@ class ScraperIdnesReality(ScraperBase):
         ),
         Disposition.FLAT_OTHERS: "s-qc%5BsubtypeFlat%5D%5B%5D=atypical", # atyp
     }
-
+    """
+    def __init__(self, config):
+        super().__init__(config)
 
     def build_response(self) -> requests.Response:
-        url = "https://reality.idnes.cz/s/pronajem/byty/brno-mesto/?"
-        url += "&".join(self.get_dispositions_data())
+        url = self._config["url"]
 
         logging.debug("iDNES reality request: %s", url)
-
         return requests.get(url, headers=self.headers)
 
     def get_latest_offers(self) -> list[RentalOffer]:

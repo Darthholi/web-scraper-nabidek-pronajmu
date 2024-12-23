@@ -14,12 +14,28 @@ from urllib.parse import urljoin
 
 
 class ScraperSreality(ScraperBase):
+    """
+    https://dspace.cvut.cz/bitstream/handle/10467/103384/F8-BP-2021-Malach-Ondrej-thesis.pdf?sequence=-1&isAllowed=y
+
+    Workflow:
+    go to the GUI of sreality.cz, click what you want, you get the url:
+    https://www.sreality.cz/hledani/prodej/byty,domy?region=Kol%C3%ADn&region-id=3412&region-typ=municipality
+    
+
+
+    """
 
     name = "Sreality"
     logo_url = "https://www.sreality.cz/img/icons/android-chrome-192x192.png"
     color = 0xCC0000
-    base_url = "https://www.sreality.cz"
+    base_url = "https://www.sreality.cz/api/cs/v2/estates?"
 
+    _base_config = {"url": None,  # use this to override the logic
+                    "API_INSIDE_URL_SELECTIONS": ""
+                    }
+
+
+    """
     disposition_mapping = {
         Disposition.FLAT_1KK: "2",
         Disposition.FLAT_1: "3",
@@ -32,6 +48,7 @@ class ScraperSreality(ScraperBase):
         Disposition.FLAT_5_UP: ("10", "11", "12"),
         Disposition.FLAT_OTHERS: "16",
     }
+    """
 
     _category_type_to_url = {
         0: "vse",
@@ -94,8 +111,12 @@ class ScraperSreality(ScraperBase):
             50: "vinny-sklep",
             51: "pudni-prostor",
             53: "mobilni-domek",
-            36: "jine-nemovitosti"
+            36: "jine-nemovitosti",
+            57: "Unknown",
         }
+    
+    def __init__(self, config):
+        super().__init__(config)
 
 
     def _create_link_to_offer(self, offer) -> str:
@@ -112,6 +133,10 @@ class ScraperSreality(ScraperBase):
         #url += "&category_type_cb=2&locality_district_id=72&locality_region_id=14&per_page=20"
         #url += "&tms=" + str(int(time()))
         url = "https://www.sreality.cz/hledani/prodej/byty?region=Kol%C3%ADn&region-id=3412&region-typ=municipality"
+
+        url = self._config["url"]
+        if url is None:  # not overriden:
+            url = self.base_url + self._config["API_INSIDE_URL_SELECTIONS"] + "&tms=" + str(int(time()))
 
         logging.debug("Sreality request: %s", url)
 

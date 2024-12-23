@@ -17,7 +17,11 @@ class ScraperRealcity(ScraperBase):
     name = "REALCITY"
     logo_url = "https://files.janchaloupka.cz/realcity.png"
     color = 0xB60D1C
+    base_url = "https://www.realcity.cz/nemovitosti"
+    _base_config = {"url": base_url}
 
+
+    """
     disposition_mapping = {
         Disposition.FLAT_1KK: "%221%2Bkk%22",
         Disposition.FLAT_1: "%221%2B1%22",
@@ -30,13 +34,15 @@ class ScraperRealcity(ScraperBase):
         Disposition.FLAT_5_UP: ("%225%2Bkk%22", "%225%2B1%22", "%225%2B2%22", "%226%2Bkk%22", "%226%2B1%22", "%22disp_more%22"), # 5kk, 5+1, 5+2, 6kk, 6+1, ++
         Disposition.FLAT_OTHERS: ("%22atyp%22", "%22disp_nospec%22"), # atyp, unknown
     }
-
+    """
+    def __init__(self, config):
+        super().__init__(config)
 
     def build_response(self) -> requests.Response:
         #url = "https://www.realcity.cz/pronajem-bytu/brno-mesto-68/?sp=%7B%22locality%22%3A%5B68%5D%2C%22transactionTypes%22%3A%5B%22rent%22%5D%2C%22propertyTypes%22%3A%5B%7B%22propertyType%22%3A%22flat%22%2C%22options%22%3A%7B%22disposition%22%3A%5B"
         #url += "%2C".join(self.get_dispositions_data())
         #url += "%5D%7D%7D%5D%7D"
-        url = "https://www.realcity.cz/nemovitosti?search=%7B%22prefLoc%22%3A%5B742%5D%2C%22mloc%22%3A%7B%22name%22%3A%22Kol%5Cu00edn%22%7D%2C%22withImage%22%3Atrue%7D"
+        url = self._config["url"]
 
         logging.debug("REALCITY request: %s", url)
 

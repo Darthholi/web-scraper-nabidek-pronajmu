@@ -17,6 +17,36 @@ class ScraperUlovDomov(ScraperBase):
     color = 0xFFFFFF
     base_url = "https://www.ulovdomov.cz/fe-api/find/seperated-offers-within-bounds"
 
+    _base_config = {
+            "acreage_from": "",
+            "acreage_to": "",
+            "added_before": "",
+            "banner_panel_width_type": 480,
+            "bounds": {
+                "north_east": {
+                    "lat": 49.294485,
+                    "lng": 16.727853
+                },
+                "south_west": {
+                    "lat": 49.109655,
+                    "lng": 16.428068
+                }
+            },
+            "conveniences": [],
+            "dispositions": [],
+            "furnishing": [],
+            "is_price_commision_free": None,
+            "limit": 20,
+            "offer_type_id": None,
+            "page": 1,
+            "price_from": "",
+            "price_to": "",
+            "query": "",
+            "sort_by": "date:desc",
+            "sticker": None
+        }
+
+    """
     disposition_mapping = {
         Disposition.FLAT_1KK: 2,
         Disposition.FLAT_1: 3,
@@ -29,6 +59,7 @@ class ScraperUlovDomov(ScraperBase):
         Disposition.FLAT_5_UP: (10, 11, 12, 13, 14, 15), # 5kk, 5+1, 6kk, 6+1, 7kk, 7+1
         Disposition.FLAT_OTHERS: 16,
     }
+    """
 
 
     def disposition_id_to_string(self, id) -> str:
@@ -58,36 +89,13 @@ class ScraperUlovDomov(ScraperBase):
             "shared_room": "spolubydlení",
             "5_and_more": "5 a více"
         }.get(id, "")
+    
+
+    def __init__(self, config):
+        super().__init__(config)
 
     def build_response(self) -> requests.Response:
-        json_request = {
-            "acreage_from": "",
-            "acreage_to": "",
-            "added_before": "",
-            "banner_panel_width_type": 480,
-            "bounds": {
-                "north_east": {
-                    "lat": 49.294485,
-                    "lng": 16.727853
-                },
-                "south_west": {
-                    "lat": 49.109655,
-                    "lng": 16.428068
-                }
-            },
-            "conveniences": [],
-            "dispositions": self.get_dispositions_data(),
-            "furnishing": [],
-            "is_price_commision_free": None,
-            "limit": 20,
-            "offer_type_id": None,
-            "page": 1,
-            "price_from": "",
-            "price_to": "",
-            "query": "",
-            "sort_by": "date:desc",
-            "sticker": None
-        }
+        json_request = self._config
 
         logging.debug("UlovDomov request: %s", json.dumps(json_request))
 

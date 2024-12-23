@@ -15,14 +15,10 @@ from bs4 import BeautifulSoup
 
 
 class ScraperEuroBydleni(ScraperBase):
-
-    name = "Eurobydlení"
-    logo_url = "https://files.janchaloupka.cz/eurobydleni.png"
-    color = 0xFA0F54
-    base_url = "https://www.eurobydleni.cz/search-form"
-
-    loc = {
-        "Brno": {
+    """
+    
+    Examples:
+    "Brno": {
             "sql[locality][locality][input]": "Brno, Česko",
             "sql[locality][locality][city]": "Brno, Česko",
             "sql[locality][locality][zip_code]": "",
@@ -46,28 +42,17 @@ class ScraperEuroBydleni(ScraperBase):
             "sql[locality][viewport][north]": "50.12814",
             "sql[locality][viewport][east]": "15.35057",
         }
-    }
-    self.locsetting = "Kolin"
+    
+    """
 
-    cookies = {"listing-sort": "sort-added"}
-    disposition_mapping = {
-        Disposition.FLAT_1: 15,
-        Disposition.FLAT_1KK: 16,
-        Disposition.FLAT_2: 17,
-        Disposition.FLAT_2KK: 18,
-        Disposition.FLAT_3: 19,
-        Disposition.FLAT_3KK: 20,
-        Disposition.FLAT_4: 21,
-        Disposition.FLAT_4KK: 22,
-        Disposition.FLAT_5_UP: (202, 256), # (5+1, 5kk)
-        Disposition.FLAT_OTHERS: (14, 857), # (Garsonka, Apartman)
-    }
+    name = "Eurobydleni"
+    logo_url = "https://files.janchaloupka.cz/eurobydleni.png"
+    color = 0xFA0F54
+    base_url = "https://www.eurobydleni.cz/search-form"
 
-
-    def build_response(self) -> requests.Response:
-        request_data = {
+    _base_config = {
             "sql[advert_type_eu][]": 7,
-            "sql[advert_subtype_eu][]": self.get_dispositions_data(),
+            "sql[advert_subtype_eu][]": "",
             "sql[advert_function_eu][]": 3,
             "sql[advert_price_min]": "",
             "sql[advert_price_max]": "",
@@ -80,11 +65,33 @@ class ScraperEuroBydleni(ScraperBase):
             "sql[poptavka][email]": "",
             "sql[poptavka][telefon]": ""
         }
-        request_data.update(self.loc[self.locsetting])
+    
+    def __init__(self, config):
+        super().__init__(config)
 
-        logging.debug("EuroBydlení request: %s", json.dumps(request_data))
+    cookies = {"listing-sort": "sort-added"}
+    
+    """
+    disposition_mapping = {
+        Disposition.FLAT_1: 15,
+        Disposition.FLAT_1KK: 16,
+        Disposition.FLAT_2: 17,
+        Disposition.FLAT_2KK: 18,
+        Disposition.FLAT_3: 19,
+        Disposition.FLAT_3KK: 20,
+        Disposition.FLAT_4: 21,
+        Disposition.FLAT_4KK: 22,
+        Disposition.FLAT_5_UP: (202, 256), # (5+1, 5kk)
+        Disposition.FLAT_OTHERS: (14, 857), # (Garsonka, Apartman)
+    }
+    """
 
-        response = requests.post(self.base_url, headers=self.headers, cookies=self.cookies, data=request_data)
+
+    def build_response(self) -> requests.Response:
+
+        logging.debug("EuroBydlení request: %s", json.dumps(self._config))
+
+        response = requests.post(self.base_url, headers=self.headers, cookies=self.cookies, data=self._config)
         response.encoding = "utf-8"
         return response
 

@@ -16,7 +16,7 @@ from scrapers.scraper_ulov_domov import ScraperUlovDomov
 from scrapers.scraper_bezrealitky import ScraperBezrealitky
 
 
-scrapper_classes = {scrapper.name for scrapper in [ScraperBravis,
+scrapper_classes = {scrapper.name: scrapper for scrapper in [ScraperBravis,
         ScraperEuroBydleni,
         ScraperIdnesReality,
         ScraperRealcity,

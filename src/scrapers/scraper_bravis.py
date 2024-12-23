@@ -17,6 +17,13 @@ class ScraperBravis(ScraperBase):
     color = 0xCE0020
     base_url = "https://www.bravis.cz/pronajem-bytu"
 
+    _base_config = {}
+
+
+    def __init__(self, config):
+        super().__init__(config)
+        raise ValueError("This is only for Brno")
+
 
     def build_response(self) -> requests.Response:
         url = self.base_url + "?"

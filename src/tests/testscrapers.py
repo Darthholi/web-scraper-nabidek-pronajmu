@@ -1,34 +1,62 @@
-from srappers.scrapes_manager import scrapper_classes
+import sys
+import os
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from scrapers.scrapers_manager import scrapper_classes
+
+
 
 scrapers_settings = {
-"BezRealitky": 
-{
-    "operationName": "AdvertList",
-    "variables": {
-        "limit": 15,
-        "offset": 75,
-        "order": "TIMEORDER_DESC",
-        "locale": "CS",
-        "offerType": [],
-        "estateType": [],
-        "disposition": [],
-        "regionOsmIds": []
-    },
-    "query": "query AdvertList($locale: Locale!, $estateType: [EstateType], $offerType: [OfferType], $disposition: [Disposition], $region: ID, $regionOsmIds: [ID], $limit: Int = 15, $offset: Int = 0, $order: ResultOrder = TIMEORDER_DESC, $petFriendly: Boolean, $balconyFrom: Float, $balconyTo: Float, $loggiaFrom: Float, $loggiaTo: Float, $terraceFrom: Float, $terraceTo: Float, $cellarFrom: Float, $cellarTo: Float, $parking: Boolean, $garage: Boolean, $newBuilding: Boolean, $lift: Boolean, $ownership: [Ownership], $construction: [Construction], $equipped: [Equipped], $priceFrom: Int, $priceTo: Int, $surfaceFrom: Int, $surfaceTo: Int, $advertId: [ID], $roommate: Boolean, $includeImports: Boolean, $boundaryPoints: [GPSPointInput], $discountedOnly: Boolean, $barrierFree: Boolean, $polygonBuffer: Int, $availableFrom: DateTime) {\n  listAdverts(\n    offerType: $offerType\n    estateType: $estateType\n    disposition: $disposition\n    limit: $limit\n    regionId: $region\n    regionOsmIds: $regionOsmIds\n    offset: $offset\n    order: $order\n    petFriendly: $petFriendly\n    balconySurfaceFrom: $balconyFrom\n    balconySurfaceTo: $balconyTo\n    loggiaSurfaceFrom: $loggiaFrom\n    loggiaSurfaceTo: $loggiaTo\n    terraceSurfaceFrom: $terraceFrom\n    terraceSurfaceTo: $terraceTo\n    cellarSurfaceFrom: $cellarFrom\n    cellarSurfaceTo: $cellarTo\n    parking: $parking\n    garage: $garage\n    newBuilding: $newBuilding\n    lift: $lift\n    ownership: $ownership\n    construction: $construction\n    equipped: $equipped\n    priceFrom: $priceFrom\n    priceTo: $priceTo\n    surfaceFrom: $surfaceFrom\n    surfaceTo: $surfaceTo\n    ids: $advertId\n    roommate: $roommate\n    includeImports: $includeImports\n    boundaryPoints: $boundaryPoints\n    discountedOnly: $discountedOnly\n    polygonBuffer: $polygonBuffer\n    barrierFree: $barrierFree\n    availableFrom: $availableFrom\n  ) {\n    list {\n      id\n      uri\n      estateType\n      offerType\n      disposition\n      imageAltText(locale: $locale)\n      mainImage {\n        id\n        url(filter: RECORD_THUMB)\n        __typename\n      }\n      address(locale: $locale)\n      surface\n      surfaceLand\n      tags(locale: $locale)\n      price\n      charges\n      currency\n      petFriendly\n      reserved\n      highlighted\n      roommate\n      project {\n        id\n        __typename\n      }\n      gps {\n        lat\n        lng\n        __typename\n      }\n      mortgageData(locale: $locale) {\n        rateLow\n        rateHigh\n        loan\n        years\n        __typename\n      }\n      originalPrice\n      isDiscounted\n      nemoreport {\n        id\n        status\n        timeCreated\n        __typename\n      }\n      isNew\n      videos {\n        id\n        previewUrl\n        status\n        __typename\n      }\n      links {\n        id\n        url\n        type\n        status\n        __typename\n      }\n      __typename\n    }\n    totalCount\n    __typename\n  }\n  actionList: listAdverts(\n    offerType: $offerType\n    estateType: $estateType\n    disposition: $disposition\n    regionId: $region\n    regionOsmIds: $regionOsmIds\n    offset: $offset\n    order: $order\n    petFriendly: $petFriendly\n    balconySurfaceFrom: $balconyFrom\n    balconySurfaceTo: $balconyTo\n    loggiaSurfaceFrom: $loggiaFrom\n    loggiaSurfaceTo: $loggiaTo\n    terraceSurfaceFrom: $terraceFrom\n    terraceSurfaceTo: $terraceTo\n    cellarSurfaceFrom: $cellarFrom\n    cellarSurfaceTo: $cellarTo\n    parking: $parking\n    garage: $garage\n    newBuilding: $newBuilding\n    lift: $lift\n    ownership: $ownership\n    construction: $construction\n    equipped: $equipped\n    priceFrom: $priceFrom\n    priceTo: $priceTo\n    surfaceFrom: $surfaceFrom\n    surfaceTo: $surfaceTo\n    ids: $advertId\n    roommate: $roommate\n    includeImports: $includeImports\n    boundaryPoints: $boundaryPoints\n    discountedOnly: true\n    limit: 3\n    availableFrom: $availableFrom\n  ) {\n    list {\n      id\n      uri\n      estateType\n      offerType\n      disposition\n      imageAltText(locale: $locale)\n      mainImage {\n        id\n        url(filter: RECORD_THUMB)\n        __typename\n      }\n      address(locale: $locale)\n      surface\n      surfaceLand\n      tags(locale: $locale)\n      price\n      charges\n      currency\n      petFriendly\n      reserved\n      highlighted\n      roommate\n      project {\n        id\n        __typename\n      }\n      gps {\n        lat\n        lng\n        __typename\n      }\n      mortgageData(locale: $locale) {\n        rateLow\n        rateHigh\n        loan\n        years\n        __typename\n      }\n      originalPrice\n      isDiscounted\n      nemoreport {\n        id\n        status\n        timeCreated\n        __typename\n      }\n      isNew\n      videos {\n        id\n        previewUrl\n        status\n        __typename\n      }\n      links {\n        id\n        url\n        type\n        status\n        __typename\n      }\n      __typename\n    }\n    totalCount\n    __typename\n  }\n}\n"
-}.update(
-{
-            "estateType": [],
-            "offerType": "PRODEJ",
-            "disposition": [],
-            "regionOsmIds": ["R441315"],  # kolin
-
+"BezRealitky":{"variables":{
+            "estateType": ["BYT", "DUM"],
+            "offerType": ["PRODEJ", "PRONAJEM"],
+            #"disposition": [],
+            "regionOsmIds": ["R441253"],
+            #"regionOsmId": "R441253",  # Kolin
+            #"locationPoint": {
+            #    "lat": 50.02814,
+            #    "lng": 15.20057
+            #    },
+            #"locationRadius": 10,
 }
-
-)
+},
+"UlovDomov": {"bounds": {
+                "south_west": {
+                    "lat": 49.92814,
+                    "lng": 15.05057
+                },
+                "north_east": {
+                    "lat": 50.12814,
+                    "lng": 15.35057
+                },
+            },},
+"Sreality": {"API_INSIDE_URL_SELECTIONS": "region=Kolín&region-id=3412&region-typ=municipality"},
+"Eurobydleni": {
+            "sql[locality][locality][input]": "Kolín, Česko",
+            "sql[locality][locality][city]": "Kolín, Česko",
+            "sql[locality][locality][zip_code]": "",
+            "sql[locality][locality][types]": "locality",
+            "sql[locality][location][lat]": "50.02814",
+            "sql[locality][location][lng]": "15.20057",
+            "sql[locality][viewport][south]": "49.92814",
+            "sql[locality][viewport][west]": "15.05057",
+            "sql[locality][viewport][north]": "50.12814",
+            "sql[locality][viewport][east]": "15.35057",
+        },
+"iDNESReality": {"url": "https://reality.idnes.cz/s/kolin/"},
+"REALCITY": {"url": "https://www.realcity.cz/nemovitosti?search=%7B%22prefLoc%22%3A%5B742%5D%2C%22mloc%22%3A%7B%22name%22%3A%22Kol%5Cu00edn%22%7D%2C%22withImage%22%3Atrue%7D"},
+"realingo": {"variables": {"address": "Kolin",}},
+"Remax": {"url": "https://www.remax-czech.cz/reality/vyhledavani/?desc_text=Kol%C3%ADn&hledani=1&order_by_published_date=0"},
 }
 
 
 def main():
     for settings in scrapers_settings:
         sc_instance = scrapper_classes[settings](scrapers_settings[settings])
-        sc_instance.get_latest_offers()
+        result = sc_instance.get_latest_offers()
+        assert result is not None
+
+if __name__ == "__main__":
+    main()

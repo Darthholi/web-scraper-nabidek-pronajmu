@@ -7,6 +7,8 @@ from disposition import Disposition
 from scrapers.rental_offer import RentalOffer
 from utils import flatten
 
+from pydantic.utils import deep_update
+
 
 class ScraperBase():
     """Hlavní třída pro získávání aktuálních nabídek pronájmu bytů z různých služeb
@@ -30,16 +32,14 @@ class ScraperBase():
     def color(self) -> int:
         pass
 
+    def __init__(self, config) -> None:
+        self._config = self._base_config.copy()
+        self._config = deep_update(self._config, config)
+
     @property
     @abstractmethod
-    def disposition_mapping(self) -> dict[Disposition, Any]:
-        pass
-
-    def __init__(self, disposition: Disposition) -> None:
-        self.disposition = disposition
-
-    def get_dispositions_data(self) -> list:
-        return list(flatten([self.disposition_mapping[d] for d in self.disposition]))
+    def _base_confg() -> dict:
+        return {}
 
     @abstractmethod
     def build_response() -> Response:

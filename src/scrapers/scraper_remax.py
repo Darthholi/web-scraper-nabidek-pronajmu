@@ -20,6 +20,9 @@ class ScraperRemax(ScraperBase):
     color = 0x003DA5
     base_url = "https://www.remax-czech.cz/reality/vyhledavani/"
 
+    _base_config = {"url": base_url}
+
+    """
     disposition_mapping = {
         Disposition.FLAT_1KK: "&types%5B4%5D%5B2%5D=on",
         Disposition.FLAT_2KK: "&types%5B4%5D%5B3%5D=on",
@@ -42,12 +45,17 @@ class ScraperRemax(ScraperBase):
             "&types%5B4%5D%5B17%5D=on", # jiný
         ),
     }
+    """
+
+    def __init__(self, config):
+        super().__init__(config)
 
 
     def build_response(self) -> requests.Response:
-        url = self.base_url + "?regions%5B116%5D%5B3702%5D=on&sale=2"
-        url += "".join(self.get_dispositions_data())
-        url += "&order_by_published_date=0"
+        #url = self.base_url + "?regions%5B116%5D%5B3702%5D=on&sale=2"
+        #url += "".join(self.get_dispositions_data())
+        #url += "&order_by_published_date=0"
+        url = self._config["url"]
 
         logging.debug("Remax request: %s", url)
 

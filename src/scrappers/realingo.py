@@ -4,14 +4,14 @@ from urllib.parse import urljoin
 
 import requests
 
-from disposition import Disposition
-from scrapers.rental_offer import RentalOffer
-from scrapers.scraper_base import ScraperBase
-from scrapers.rental_offer import RentalOffer
+from legacy.disposition import Disposition
+from scrappers.rental_offer import RentalOffer
+from scrappers.base import ScrapperBase
+from scrappers.rental_offer import RentalOffer
 import requests
 
 
-class ScraperRealingo(ScraperBase):
+class ScraperRealingo(ScrapperBase):
 
     name = "realingo"
     logo_url = "https://www.realingo.cz/_next/static/media/images/android-chrome-144x144-cf1233ce.png"
@@ -22,11 +22,11 @@ class ScraperRealingo(ScraperBase):
             "query": "query SearchOffer($purpose: OfferPurpose, $property: PropertyType, $saved: Boolean, $categories: [OfferCategory!], $area: RangeInput, $plotArea: RangeInput, $price: RangeInput, $bounds: GpsBoundsInput, $address: String, $transportType: TransportType, $toleration: Float, $buildingTypes: [BuildingType!], $buildingStatuses: [BuildingStatus!], $buildingPositions: [BuildingPosition!], $houseTypes: [HouseType!], $floor: RangeInput, $ownershipStatuses: [OwnershipStatus!], $furnitureStatuses: [FurnitureStatus!], $maxAge: Int, $contactType: ContactType, $geometry: GeoJSONGeometry, $sort: OfferSort = NEWEST, $first: Int = 20, $skip: Int = 0) {\n  addressGeometry(\n    address: $address\n    geometry: $geometry\n    toleration: $toleration\n    transportType: $transportType\n  ) {\n    geometry\n    mask\n  }\n  searchOffer(\n    filter: {purpose: $purpose, property: $property, saved: $saved, address: $address, transportType: $transportType, toleration: $toleration, categories: $categories, area: $area, plotArea: $plotArea, price: $price, bounds: $bounds, buildingTypes: $buildingTypes, buildingStatuses: $buildingStatuses, buildingPositions: $buildingPositions, houseTypes: $houseTypes, floor: $floor, ownershipStatuses: $ownershipStatuses, furnitureStatuses: $furnitureStatuses, maxAge: $maxAge, contactType: $contactType, geometry: $geometry}\n    sort: $sort\n    first: $first\n    skip: $skip\n    save: true\n  ) {\n    location {\n      id\n      type\n      url\n      name\n      neighbours {\n        id\n        type\n        url\n        name\n      }\n      breadcrumbs {\n        url\n        name\n      }\n      relatedSearch {\n        ...SearchParametersAttributes\n      }\n      center\n    }\n    items {\n      ...SearchOfferAttributes\n    }\n    total\n  }\n}\n\nfragment FilterAttributes on OfferFilter {\n  purpose\n  property\n  categories\n  address\n  location {\n    name\n  }\n  toleration\n  transportType\n  bounds {\n    northEast {\n      latitude\n      longitude\n    }\n    southWest {\n      latitude\n      longitude\n    }\n  }\n  saved\n  geometry\n  area {\n    from\n    to\n  }\n  plotArea {\n    from\n    to\n  }\n  price {\n    from\n    to\n  }\n  buildingTypes\n  buildingStatuses\n  buildingPositions\n  houseTypes\n  floor {\n    from\n    to\n  }\n  ownershipStatuses\n  furnitureStatuses\n  maxAge\n  contactType\n}\n\nfragment SearchParametersAttributes on SearchParameters {\n  filter {\n    ...FilterAttributes\n  }\n  page\n  priceMap\n  sort\n}\n\nfragment SearchOfferAttributes on Offer {\n  id\n  url\n  purpose\n  property\n  visited\n  liked\n  reserved\n  createdAt\n  category\n  purpose\n  property\n  price {\n    total\n    canonical\n    currency\n  }\n  area {\n    main\n    plot\n  }\n  photos {\n    main\n  }\n  location {\n    address\n    addressUrl\n    locationPrecision\n    latitude\n    longitude\n  }\n}\n",
             "operationName": "SearchOffer",
             "variables": {
-                "purpose": [], #"RENT",
-                "property": [], #"FLAT",
+                #"purpose": [], #"RENT",
+                #"property": [], #"FLAT",
                 "address": [], #"Kolin",
                 "saved": False,
-                "categories": [],  # dispositions
+                #"categories": [],  # dispositions
                 "sort": "NEWEST",
                 "first": 300,
                 "skip": 0
@@ -104,6 +104,8 @@ class ScraperRealingo(ScraperBase):
         response = self.build_response().json()
 
         items: list[RentalOffer] = []
+        if "data" not in response:
+            raise ValueError(response['errors'])
 
         for offer in response["data"]["searchOffer"]["items"]:
             items.append(RentalOffer(

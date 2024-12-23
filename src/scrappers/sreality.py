@@ -4,16 +4,16 @@ from urllib.parse import urljoin
 
 import requests
 
-from disposition import Disposition
-from scrapers.rental_offer import RentalOffer
-from scrapers.scraper_base import ScraperBase
-from scrapers.rental_offer import RentalOffer
+from legacy.disposition import Disposition
+from scrappers.rental_offer import RentalOffer
+from scrappers.base import ScrapperBase
+from scrappers.rental_offer import RentalOffer
 from time import time
 import requests
 from urllib.parse import urljoin
 
 
-class ScraperSreality(ScraperBase):
+class ScraperSreality(ScrapperBase):
     """
     https://dspace.cvut.cz/bitstream/handle/10467/103384/F8-BP-2021-Malach-Ondrej-thesis.pdf?sequence=-1&isAllowed=y
 

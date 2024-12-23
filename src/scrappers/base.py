@@ -3,14 +3,14 @@ from typing import Any
 
 from requests import Response
 
-from disposition import Disposition
-from scrapers.rental_offer import RentalOffer
-from utils import flatten
+from legacy.disposition import Disposition
+from scrappers.rental_offer import RentalOffer
+from legacy.utils import flatten
 
 from pydantic.utils import deep_update
 
 
-class ScraperBase():
+class ScrapperBase():
     """Hlavní třída pro získávání aktuálních nabídek pronájmu bytů z různých služeb
     """
 

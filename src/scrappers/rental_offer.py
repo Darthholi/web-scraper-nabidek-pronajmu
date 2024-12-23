@@ -20,5 +20,6 @@ class RentalOffer:
     image_url: str
     """Náhledový obrázek nabídky"""
 
-    scraper: 'ScraperBase'
-    """Odkaz na instanci srapera, ze kterého tato nabídka pochází"""
+    def dict(self):
+        return self.__dict__.copy()
+

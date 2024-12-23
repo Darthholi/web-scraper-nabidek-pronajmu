@@ -3,14 +3,14 @@ import logging
 
 import requests
 
-from disposition import Disposition
-from scrapers.rental_offer import RentalOffer
-from scrapers.scraper_base import ScraperBase
-from scrapers.rental_offer import RentalOffer
+from legacy.disposition import Disposition
+from scrappers.rental_offer import RentalOffer
+from scrappers.base import ScrapperBase
+from scrappers.rental_offer import RentalOffer
 import requests
 
 
-class ScraperUlovDomov(ScraperBase):
+class ScraperUlovDomov(ScrapperBase):
 
     name = "UlovDomov"
     logo_url = "https://www.ulovdomov.cz/favicon.png"

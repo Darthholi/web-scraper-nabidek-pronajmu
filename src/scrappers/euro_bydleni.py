@@ -6,15 +6,15 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-from disposition import Disposition
-from scrapers.rental_offer import RentalOffer
-from scrapers.scraper_base import ScraperBase
-from scrapers.rental_offer import RentalOffer
+from legacy.disposition import Disposition
+from scrappers.rental_offer import RentalOffer
+from scrappers.base import ScrapperBase
+from scrappers.rental_offer import RentalOffer
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
 
-class ScraperEuroBydleni(ScraperBase):
+class ScraperEuroBydleni(ScrapperBase):
     """
     
     Examples:

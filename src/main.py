@@ -1,99 +1,59 @@
-#!/usr/bin/evn python3
-import logging
-from datetime import datetime
-from time import time
+from scrappers.manager import scrapper_classes
 
-import discord
-from discord.ext import tasks
+scrapers_settings = {"Kolin":
+                     {
+"BezRealitky":{"variables":{
+            "estateType": ["BYT", "DUM"],
+            "offerType": ["PRODEJ", "PRONAJEM"],
+            #"disposition": [],
+            "regionOsmIds": ["R441253"],
+            #"regionOsmId": "R441253",  # Kolin
+            #"locationPoint": {
+            #    "lat": 50.02814,
+            #    "lng": 15.20057
+            #    },
+            #"locationRadius": 10,
+}
+},
+"UlovDomov": {"bounds": {
+                "south_west": {
+                    "lat": 49.92814,
+                    "lng": 15.05057
+                },
+                "north_east": {
+                    "lat": 50.12814,
+                    "lng": 15.35057
+                },
+            },},
+"Sreality": {"API_INSIDE_URL_SELECTIONS": "region=Kolín&region-id=3412&region-typ=municipality"},
+"Eurobydleni": {
+            "sql[locality][locality][input]": "Kolín, Česko",
+            "sql[locality][locality][city]": "Kolín, Česko",
+            "sql[locality][locality][zip_code]": "",
+            "sql[locality][locality][types]": "locality",
+            "sql[locality][location][lat]": "50.02814",
+            "sql[locality][location][lng]": "15.20057",
+            "sql[locality][viewport][south]": "49.92814",
+            "sql[locality][viewport][west]": "15.05057",
+            "sql[locality][viewport][north]": "50.12814",
+            "sql[locality][viewport][east]": "15.35057",
+        },
+"iDNESReality": {"url": "https://reality.idnes.cz/s/kolin/"},
+"REALCITY": {"url": "https://www.realcity.cz/nemovitosti?search=%7B%22prefLoc%22%3A%5B742%5D%2C%22mloc%22%3A%7B%22name%22%3A%22Kol%5Cu00edn%22%7D%2C%22withImage%22%3Atrue%7D"},
+"realingo": {"variables": {"address": "Kolin",}},
+"Remax": {"url": "https://www.remax-czech.cz/reality/vyhledavani/?desc_text=Kol%C3%ADn&hledani=1&order_by_published_date=0"},
+}
+}
 
-from config import *
-from discord_logger import DiscordLogger
-from offers_storage import OffersStorage
-from scrapers.rental_offer import RentalOffer
-from scrapers_manager import create_scrapers, fetch_latest_offers
 
-
-def get_current_daytime() -> bool: return datetime.now().hour in range(6, 22)
-
-
-client = discord.Client(intents=discord.Intents.default())
-daytime = get_current_daytime()
-interval_time = config.refresh_interval_daytime_minutes if daytime else config.refresh_interval_nighttime_minutes
-
-scrapers = create_scrapers(config.dispositions)
-
-@client.event
-async def on_ready():
-    global channel, storage
-
-    dev_channel = client.get_channel(config.discord.dev_channel)
-    channel = client.get_channel(config.discord.offers_channel)
-    storage = OffersStorage(config.found_offers_file)
-
-    if not config.debug:
-        discord_error_logger = DiscordLogger(client, dev_channel, logging.ERROR)
-        logging.getLogger().addHandler(discord_error_logger)
-    else:
-        logging.info("Discord logger is inactive in debug mode")
-
-    logging.info("Available scrapers: " + ", ".join([s.name for s in scrapers]))
-
-    logging.info("Fetching latest offers every {} minutes".format(interval_time))
-
-    process_latest_offers.start()
-
-
-@tasks.loop(minutes=interval_time)
-async def process_latest_offers():
-    logging.info("Fetching offers")
-
-    new_offers: list[RentalOffer] = []
-    for offer in fetch_latest_offers(scrapers):
-        if not storage.contains(offer):
-            new_offers.append(offer)
-
-    first_time = storage.first_time
-    storage.save_offers(new_offers)
-
-    logging.info("Offers fetched (new: {})".format(len(new_offers)))
-
-    if not first_time:
-        for offer in new_offers:
-            embed = discord.Embed(
-                title=offer.title,
-                url=offer.link,
-                description=offer.location,
-                timestamp=datetime.utcnow(),
-                color=offer.scraper.color
-            )
-
-            embed.add_field(name="Cena", value=str(offer.price) + " Kč")
-            embed.set_author(name=offer.scraper.name, icon_url=offer.scraper.logo_url)
-            embed.set_image(url=offer.image_url)
-
-            await channel.send(embed=embed)
-    else:
-        logging.info("No previous offers, first fetch is running silently")
-
-    global daytime, interval_time
-    if daytime != get_current_daytime():  # Pokud stary daytime neodpovida novemu
-
-        daytime = not daytime  # Zneguj daytime (podle podminky se zmenil)
-
-        interval_time = config.refresh_interval_daytime_minutes if daytime else config.refresh_interval_nighttime_minutes
-
-        logging.info("Fetching latest offers every {} minutes".format(interval_time))
-        process_latest_offers.change_interval(minutes=interval_time)
-
-    await channel.edit(topic="Last update {}".format("<t:{}:R>".format(int(time()))))
-
+def main():
+    for location in scrapers_settings:
+        all_results = []
+        for settings in scrapers_settings[location]:
+            sc_instance = scrapper_classes[settings](scrapers_settings[location][settings])
+            all_results.extend(sc_instance.get_latest_offers())
+        assert all_results is not None
+            
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=(logging.DEBUG if config.debug else logging.INFO),
-        format='%(asctime)s - [%(levelname)s] %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
-
-    logging.debug("Running in debug mode")
-
-    client.run(config.discord.token, log_level=logging.INFO)
+    main()

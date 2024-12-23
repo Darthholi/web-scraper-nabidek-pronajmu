@@ -4,15 +4,15 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-from disposition import Disposition
-from scrapers.rental_offer import RentalOffer
-from scrapers.scraper_base import ScraperBase
-from scrapers.rental_offer import RentalOffer
+from legacy.disposition import Disposition
+from scrappers.rental_offer import RentalOffer
+from scrappers.base import ScrapperBase
+from scrappers.rental_offer import RentalOffer
 import requests
 from bs4 import BeautifulSoup
 
 
-class ScraperRealcity(ScraperBase):
+class ScraperRealcity(ScrapperBase):
 
     name = "REALCITY"
     logo_url = "https://files.janchaloupka.cz/realcity.png"

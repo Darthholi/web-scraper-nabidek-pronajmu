@@ -6,7 +6,7 @@ from pathlib import Path
 import environ
 from dotenv import load_dotenv
 
-from disposition import Disposition
+from legacy.disposition import Disposition
 
 load_dotenv(".env")
 

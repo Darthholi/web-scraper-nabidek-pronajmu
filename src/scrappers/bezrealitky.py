@@ -6,12 +6,12 @@ import json
 from abc import ABC as abstract
 from typing import ClassVar
 
-from disposition import Disposition
-from scrapers.scraper_base import ScraperBase
-from scrapers.rental_offer import RentalOffer
+from legacy.disposition import Disposition
+from scrappers.base import ScrapperBase
+from scrappers.rental_offer import RentalOffer
 import requests
 
-class ScraperBezrealitky(ScraperBase):
+class ScraperBezrealitky(ScrapperBase):
     # https://github.com/kanospet/bezrealitky/blob/main/main.pys
     # https://api.bezrealitky.cz/graphql/?query={__schema%20{queryType%20{name%20fields%20{name}}mutationType%20{name%20fields%20{name}}}}
     # https://api.bezrealitky.cz/graphql/?query={__type%20(name%3A%20%22Query%22)%20{fields%20{name%20args%20{name%20type%20{name}}}}}

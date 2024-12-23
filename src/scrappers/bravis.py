@@ -5,12 +5,12 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-from disposition import Disposition
-from scrapers.rental_offer import RentalOffer
-from scrapers.scraper_base import ScraperBase
+from legacy.disposition import Disposition
+from scrappers.rental_offer import RentalOffer
+from scrappers.base import ScrapperBase
 
 
-class ScraperBravis(ScraperBase):
+class ScraperBravis(ScrapperBase):
 
     name = "BRAVIS"
     logo_url = "https://www.bravis.cz/content/img/logo-small.png"

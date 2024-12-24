@@ -1,5 +1,7 @@
 from scrappers.manager import scrapper_classes
 
+import pandas as pd
+
 scrapers_settings = {"Kolin":
                      {
 "BezRealitky":{"variables":{
@@ -52,6 +54,9 @@ def main():
         for settings in scrapers_settings[location]:
             sc_instance = scrapper_classes[settings](scrapers_settings[location][settings])
             all_results.extend(sc_instance.get_latest_offers())
+        alldicts = [item.dict() for item in all_results]
+        print(alldicts)
+            
         assert all_results is not None
             
 

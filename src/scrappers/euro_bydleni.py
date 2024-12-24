@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 import logging
 import re
@@ -94,6 +95,9 @@ class ScraperEuroBydleni(ScrapperBase):
         response = requests.post(self.base_url, headers=self.headers, cookies=self.cookies, data=self._config)
         response.encoding = "utf-8"
         return response
+    
+    def _find_content(self, metas, itemproptype) -> str:
+        return " ".join([info.attrs["content"] for info in metas if info.attrs["itemprop"]==itemproptype])
 
     def get_latest_offers(self) -> list[RentalOffer]:
         response = self.build_response()
@@ -109,13 +113,22 @@ class ScraperEuroBydleni(ScrapperBase):
             title = content.find("h2", {"class": "list-items__item__title"})
             details = content.find_all("li")
 
-            items.append(RentalOffer(
-                scraper = self,
+            metas = item.find_all("meta")
+            items.append(
+                RentalOffer(
+                #scraper = self,
+                src=self.name,
+                raw=deepcopy(item),
                 link = urljoin(self.base_url, title.find("a").get('href')),
                 title = title.get_text().strip(),
-                location = details[1].get_text().strip(),
-                price = int(re.sub(r"[^\d]", "", details[0].get_text()) or "0"),
-                image_url = "https:" + image_container.find("img").get("src")
+                location = details[1].get_text().strip(),  #             self._find_content(metas, "addressLocality")+" "+self._find_content(metas, "streeetAddress")
+                price = int(re.sub(r"[^\d]", "", details[0].get_text()) or self._find_content(metas, "price")),
+                image_url = "https:" + image_container.find("img").get("src"),  #self._find_content(metas, "image")            
+                description=self._find_content(metas, "description"),
+                charges=None,
+                offer_type=None,
+                estate_type=None,
             ))
+                
 
         return items

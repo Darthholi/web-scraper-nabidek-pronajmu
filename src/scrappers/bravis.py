@@ -58,7 +58,7 @@ class ScraperBravis(ScrapperBase):
             params = item.select(".params > li")
 
             items.append(RentalOffer(
-                scraper = self,
+                #scraper = self,
                 link = urljoin(self.base_url, item.select_one("a.main").get("href")),
                 title = "Pronájem " + params[1].find("strong").get_text().strip() + ", " + params[2].find("strong").get_text().strip(),
                 location = item.select_one(".location").get_text().strip(),

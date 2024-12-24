@@ -49,4 +49,4 @@ class Config:
 
     discord: Discord = environ.group(Discord)
 
-config: Config = Config.from_environ()
+#config: Config = Config.from_environ()

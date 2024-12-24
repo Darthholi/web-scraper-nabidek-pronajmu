@@ -1,3 +1,4 @@
+from copy import deepcopy
 import logging
 import re
 
@@ -47,27 +48,42 @@ class ScraperIdnesReality(ScrapperBase):
         url = self._config["url"]
 
         logging.debug("iDNES reality request: %s", url)
-        return requests.get(url, headers=self.headers)
+        
+        results = []
+        for page in range(0, 100):
+            result = requests.get(url+f"?page={page}", headers=self.headers)
+            if result.url.endswith(f"page={page-1}"): # if the page is the same as the previous one, we are out of range
+                break
+            results.append(result)
+        return results
 
     def get_latest_offers(self) -> list[RentalOffer]:
-        response = self.build_response()
-        soup = BeautifulSoup(response.text, 'html.parser')
+        responses = self.build_response()
+        # TODO Idnes does not provide more information, it would need to read the link for more details
 
         items: list[RentalOffer] = []
+        for response in responses:
+            soup = BeautifulSoup(response.text, 'html.parser')
 
-        offers = soup.find(id="snippet-s-result-articles")
-        for item in offers.find_all("div", {"class": "c-products__item"}):
+            offers = soup.find(id="snippet-s-result-articles")
+            for item in offers.find_all("div", {"class": "c-products__item"}):
 
-            if "c-products__item-advertisment" in item.get("class"):
-                continue
+                if "c-products__item-advertisment" in item.get("class"):
+                    continue
 
-            items.append(RentalOffer(
-                scraper = self,
-                link = item.find("a", {"class": "c-products__link"}).get('href'),
-                title = ' '.join(item.find("h2", {"class": "c-products__title"}).get_text().strip().splitlines()),
-                location = item.find("p", {"class": "c-products__info"}).get_text().strip(),
-                price = int(re.sub(r"[^\d]", "", item.find("p", {"class": "c-products__price"}).get_text()) or "0"),
-                image_url = item.find("img").get("data-src")
-            ))
+                items.append(
+                    RentalOffer(
+                    #scraper = self,
+                    src=self.name,
+                    raw=deepcopy(item),
+                    link = item.find("a", {"class": "c-products__link"}).get('href'),
+                    title = ' '.join(item.find("h2", {"class": "c-products__title"}).get_text().strip().splitlines()),
+                    location = item.find("p", {"class": "c-products__info"}).get_text().strip(),
+                    price = int(re.sub(r"[^\d]", "", item.find("p", {"class": "c-products__price"}).get_text()) or "0"),
+                    image_url = item.find("img").get("data-src"),
+                    charges=None,
+                    offer_type=None,
+                    estate_type=None,
+                ))
 
         return items

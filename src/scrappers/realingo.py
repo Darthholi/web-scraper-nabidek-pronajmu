@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 import logging
 from urllib.parse import urljoin
@@ -108,13 +109,22 @@ class ScraperRealingo(ScrapperBase):
             raise ValueError(response['errors'])
 
         for offer in response["data"]["searchOffer"]["items"]:
-            items.append(RentalOffer(
-                scraper = self,
+            # todo does not provide more details, would need to go to the details
+            items.append(
+                RentalOffer(
+                #scraper = self,
+                src=self.name,
+                raw=deepcopy(offer),
                 link = urljoin(self.base_url, offer["url"]),
                 title = self.category_to_string(offer["category"]) + ", " + str(offer["area"]["main"]) + " m²",
                 location = offer["location"]["address"],
                 price = offer["price"]["total"],
-                image_url = urljoin(self.base_url, "/static/images/" + (offer["photos"]["main"] or ""))
+                image_url = urljoin(self.base_url, "/static/images/" + (offer["photos"]["main"] or "")),
+                estate_type=offer["property"]+" "+offer["category"],
+                offer_type=offer["purpose"],
+                published=offer["createdAt"],
+                area=offer["area"]["main"],
+                charges=None,
             ))
 
         return items

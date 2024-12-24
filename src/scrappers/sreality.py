@@ -1,3 +1,4 @@
+from copy import deepcopy
 import logging
 from time import time
 from urllib.parse import urljoin
@@ -152,13 +153,19 @@ class ScraperSreality(ScrapperBase):
             if item["region_tip"] > 0:
                 continue
 
-            items.append(RentalOffer(
-                scraper = self,
+            items.append(
+                RentalOffer(
+                #scraper = self,
+                src=self.name,
+                raw=deepcopy(item),
                 link = self._create_link_to_offer(item),
                 title = item["name"],
                 location = item["locality"],
                 price = item["price_czk"]["value_raw"],
-                image_url = item["_links"]["image_middle2"][0]["href"]
-            ))
+                image_url = item["_links"]["image_middle2"][0]["href"],      
+                estate_type=item["category"],  
+                offer_type=None,
+                charges=None,
+                ))
 
         return items

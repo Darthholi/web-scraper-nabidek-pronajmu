@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 import logging
 
@@ -104,16 +105,27 @@ class ScraperUlovDomov(ScrapperBase):
     def get_latest_offers(self) -> list[RentalOffer]:
         response = self.build_response().json()
 
-        items: list[RentalOffer] = []
+        items = []
         for offer in response["offers"]:
-            items.append(RentalOffer(
-                scraper = self,
+            items.append(
+                RentalOffer(
+                #scraper = self,
+                src=self.name,
+                raw=deepcopy(offer),
                 link = offer["absolute_url"],
                 # TODO "Pronájem" podle ID?
                 title = "Pronájem " + self.disposition_id_to_string(offer["disposition_id"]) + " " + str(offer["acreage"]) + " m²",
                 location = offer["street"]["label"] + ", " + offer["village"]["label"] + " - " + offer["village_part"]["label"],
                 price = offer["price_rental"],
-                image_url = offer["photos"][0]["path"]
-            ))
+                charges=offer["price_monthly_fee"],
+                image_url = offer["photos"][0]["path"],
+                photos = {photodata["path"] for photodata in offer["photos"]},
+
+                offer_type=offer["offer_type_id"],
+                estate_type=offer["disposition_id"],
+                area="",
+                description=offer["description"],
+                published=offer["published_at"],
+                ) )
 
         return items

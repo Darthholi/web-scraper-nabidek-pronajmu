@@ -2,6 +2,7 @@
 author: Mark Barzali
 """
 
+from copy import deepcopy
 import json
 from abc import ABC as abstract
 from typing import ClassVar
@@ -121,17 +122,37 @@ class ScraperBezrealitky(ScrapperBase):
     def get_latest_offers(self) -> list[RentalOffer]:
         response = self.build_response().json()
 
-        return [  # type: list[RentalOffer]
+        return [ RentalOffer(
+                #scraper=self,
+                src=self.name,
+                raw=deepcopy(item),
+                link=self._create_link_to_offer(item["uri"]),
+                title=item["imageAltText"],
+                location=item["address"],
+                price=item['price'],
+                charges=item['charges'],
+                image_url=item["mainImage"]["url"] if item["mainImage"] else "",
+                offer_type=item["offerType"],
+                estate_type=item["estateType"],
+                area=item["surface"],
+                description=None,  # TODO
+            )
+            for item in response["data"]["listAdverts"]["list"]
+        ]
+    """
+    
             RentalOffer(
-                scraper=self,
+                #scraper=self,
                 link=self._create_link_to_offer(item["uri"]),
                 title=item["imageAltText"],
                 location=item["address"],
                 price=f"{item['price']} / {item['charges']}",
                 image_url=item["mainImage"]["url"] if item["mainImage"] else "",
+                offer_type=item["offerType"],
+                estate_type=item["estateType"],
+                area=item["surface"],
             )
-            for item in response["data"]["listAdverts"]["list"]
-        ]
+    """
 
 
 """

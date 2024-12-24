@@ -1,3 +1,4 @@
+from copy import deepcopy
 import logging
 import re
 
@@ -57,14 +58,22 @@ class ScraperRealcity(ScrapperBase):
         for item in soup.select("#rc-advertise-result .media.advertise.item"):
             image = item.find("div", "pull-left image")
             body = item.find("div", "media-body")
-
-            items.append(RentalOffer(
-                scraper=self,
+            # TODO this is one of the sites that do not provide more information
+            items.append(
+                RentalOffer(
+                #scraper=self,
+                src=self.name,
+                raw=deepcopy(item),
                 link="https://www.realcity.cz" + body.find("div", "title").a.get("href"),
                 title=body.find("div", "title").a.get_text() or "Chybí titulek",
                 location=body.find("div", "address").get_text().strip() or "Chybí adresa",
                 price=re.sub(r'\D+', '', body.find("div", "price").get_text() or "0"),
-                image_url="https:" + image.img.get("src")
+                image_url="https:" + image.img.get("src"),
+                description=body.find("div", "description").get_text().strip() or None,
+                charges=None,
+                offer_type=None,
+                estate_type=None,
             ))
+            
 
         return items

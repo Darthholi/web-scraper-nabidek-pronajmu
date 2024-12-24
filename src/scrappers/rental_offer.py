@@ -1,24 +1,36 @@
 from dataclasses import dataclass
+from typing import Union
 
 
 @dataclass
 class RentalOffer:
-    """Nabídka pronájmu bytu"""
+    raw: dict
+
+    src: str
 
     link: str
-    """URL adresa na nabídku"""
 
     title: str
-    """Popis nabídky (nejčastěji počet pokojů, výměra)"""
 
     location: str
-    """Lokace bytu (městská část, ulice)"""
 
-    price: int | str
-    """Cena pronájmu za měsíc bez poplatků a energií"""
+    price: int
+
+    charges: int
 
     image_url: str
-    """Náhledový obrázek nabídky"""
+
+    offer_type: str
+
+    estate_type: str
+
+    published: str = None
+
+    description: str = None
+
+    area: int | str | None = None
+
+    photos: list[str] | None = None
 
     def dict(self):
         return self.__dict__.copy()

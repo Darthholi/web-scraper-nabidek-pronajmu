@@ -1,3 +1,4 @@
+from copy import deepcopy
 import logging
 import re
 from urllib.parse import urljoin
@@ -68,13 +69,19 @@ class ScraperRemax(ScrapperBase):
         items: list[RentalOffer] = []
 
         for item in soup.select("#list .container-fluid .pl-items .pl-items__item"):
-            items.append(RentalOffer(
-                scraper = self,
+            items.append(
+                RentalOffer(
+                #scraper = self,
+                src=self.name,
+                raw=deepcopy(item),
                 link = urljoin(self.base_url, item.get('data-url')),
                 title = item.get("data-title"),
                 location = re.sub(r"\s+", " ", item.get("data-display-address")),
                 price = int(re.sub(r"[^\d]", "", item.get("data-price")) or "0"),
-                image_url = item.get("data-img")
+                image_url = item.get("data-img"),
+                charges=None,
+                offer_type=None,
+                estate_type=None,
             ))
 
         return items

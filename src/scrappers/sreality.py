@@ -1,17 +1,15 @@
 from copy import deepcopy
+import datetime
 import logging
 from time import time
 from urllib.parse import urljoin
-
-import requests
-
-from legacy.disposition import Disposition
 from scrappers.rental_offer import RentalOffer
 from scrappers.base import ScrapperBase
 from scrappers.rental_offer import RentalOffer
 from time import time
 import requests
 from urllib.parse import urljoin
+import re
 
 
 class ScraperSreality(ScrapperBase):
@@ -153,19 +151,22 @@ class ScraperSreality(ScrapperBase):
             if item["region_tip"] > 0:
                 continue
 
+            title = item["name"].replace(u'\xa0', u' ')
+            
             items.append(
                 RentalOffer(
-                #scraper = self,
                 src=self.name,
                 raw=deepcopy(item),
                 link = self._create_link_to_offer(item),
-                title = item["name"],
+                title = title,
                 location = item["locality"],
                 price = item["price_czk"]["value_raw"],
                 image_url = item["_links"]["image_middle2"][0]["href"],      
-                estate_type=item["category"],  
-                offer_type=None,
+                estate_type=self._category_main_to_url[item["category"]],  
+                disposition=self._category_sub_to_url[item["seo"]["category_sub_cb"]],
+                offer_type=self._category_type_to_url[item["seo"]["category_type_cb"]],
                 charges=None,
+                # todo category check jestli je category energeticka?
                 ))
 
         return items

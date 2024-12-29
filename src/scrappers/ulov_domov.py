@@ -122,10 +122,11 @@ class ScraperUlovDomov(ScrapperBase):
                 photos = {photodata["path"] for photodata in offer["photos"]},
 
                 offer_type=offer["offer_type_id"],
-                estate_type=offer["disposition_id"],
-                area="",
+                estate_type=offer["disposition_id"],  # TODO
+                area=offer["acreage"],
                 description=offer["description"],
                 published=offer["published_at"],
+                disposition=self.disposition_id_to_string(offer["disposition_id"]),
                 ) )
 
         return items

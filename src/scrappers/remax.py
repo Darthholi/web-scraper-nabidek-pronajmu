@@ -79,9 +79,10 @@ class ScraperRemax(ScrapperBase):
                 location = re.sub(r"\s+", " ", item.get("data-display-address")),
                 price = int(re.sub(r"[^\d]", "", item.get("data-price")) or "0"),
                 image_url = item.get("data-img"),
-                charges=None,
-                offer_type=None,
-                estate_type=None,
+                energy_eff = item.get("energy-efficiency-list__label"),
+                charges = None,
+                offer_type = None,
+                estate_type = None,
             ))
 
         return items

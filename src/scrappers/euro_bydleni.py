@@ -112,6 +112,15 @@ class ScraperEuroBydleni(ScrapperBase):
             content = item.find("div", {"class": "list-items__content__1"})
             title = content.find("h2", {"class": "list-items__item__title"})
             details = content.find_all("li")
+            """
+            TODO
+            ul class="in-tags">
+            <li class="in-tags__item in-tags__item--rental">
+                                pronájem                </li>
+            <li class="in-tags__item in-tags__item--houses">
+                                Byty                </li>
+            </ul>
+            """
 
             metas = item.find_all("meta")
             items.append(
@@ -128,6 +137,7 @@ class ScraperEuroBydleni(ScrapperBase):
                 charges=None,
                 offer_type=None,
                 estate_type=None,
+                disposition=None,
             ))
                 
 

@@ -3,6 +3,8 @@ import logging
 import re
 
 import requests
+import json
+from unidecode import unidecode
 from bs4 import BeautifulSoup
 
 from legacy.disposition import Disposition
@@ -55,17 +57,19 @@ class ScraperRealcity(ScrapperBase):
 
         items: list[RentalOffer] = []
 
+        details = {}
         for item in soup.select("#rc-advertise-result .media.advertise.item"):
             image = item.find("div", "pull-left image")
             body = item.find("div", "media-body")
 
             link = "https://www.realcity.cz" + body.find("div", "title").a.get("href")
 
+            parsed_headings = {}
 
-            detail = requests.get(link)
+            detail_res = requests.get(link)
 
-            if detail.status_code == 200:
-                sdetail = BeautifulSoup(detail.content, 'html.parser')
+            if detail_res.status_code == 200:
+                sdetail = BeautifulSoup(detail_res.content, 'html.parser')
                 """
                 !DOCTYPE html>
 
@@ -163,15 +167,14 @@ class ScraperRealcity(ScrapperBase):
                 detailsscript = sdetail.find("script", {"type": None, "src": None})
                 args = detailsscript.get_text().split("var args = {")[1].split("},")[0]
 
-                json.loads("{"+args.replace("'","\"").replace("\t","").replace("\n","")+"} }")
+                details = json.loads("{"+args.replace("'","\"").replace("\t","").replace("\n","")+"} }")
 
+                for li in sdetail.find_all('li', {"class": "list-group-item"}):
+                    heading = li.find("span", {"class": "list-group-item-label"})
+                    value = li.find("span", {"class": "list-group-item-value"})
+                    if heading and value:
+                        parsed_headings[unidecode(heading.get_text(strip=True).lower())] = value.get_text(strip=True)
 
-
-            """
-            \n\t\t\t\t\'serverAdresa\' : \'www.realcity.cz\',\n\t\t\t\t\'group\': \'classifieds\',\n\t\t\t\t\'device\' : \'responsive\',\n\t\t\t\t\'pageLanguage\' : "cs",\n\t\t\t\t\'url\' : \'https://www.realcity.cz/nemovitost/pronajem-bytu-2-kk-kolin-4311882\',\n\t\t\t\t\'version\' : "live",\n\t\t\t\t\'attributes\' : {"safety":0,"publishedDateTime":"2024-12-21T17:15:24+0100","keywords":null,"category":"byt","subCategory_1":"pronajem","subCategory_2":null,"subCategory_3":null,"country":"cz","kraj":"stredocesky","okres":"kolin","mesto":"kolin","seller_id":194502,"disposition":"2-kk","ownership":"osobni","equipment":"castecne-zarizeno","construction":"panelova","price_czk":"13 000 Kč \\/měs.","price_eur":"520 EUR \\/měs.","usable_area":43,"short_title":"Pronájem bytu 2+kk","short_locality":"Kolín","short_description":"osobní vlastnictví, panelová konstrukce, dobrý stav, 8. patro, umístění v centru, částečně zařízeno, energetická třída C (83-120 kWh\\/m²\\/rok)"'
-            """
-
-            # json.loads("{"+args.replace("'","\"").replace("\t","").replace("\n","").replace(" ","").replace("\\", "").replace("/","")+",}")
 
 
             # TODO this is one of the sites that do not provide more information
@@ -181,15 +184,19 @@ class ScraperRealcity(ScrapperBase):
                 src=self.name,
                 raw=deepcopy(item),
                 link=link,
-                title=body.find("div", "title").a.get_text() or "Chybí titulek",
+                title=body.find("div", "title").a.get_text() or details["attributes"]["short_title"],
                 location=body.find("div", "address").get_text().strip() or "Chybí adresa",
-                price=re.sub(r'\D+', '', body.find("div", "price").get_text() or "0"),
+                price=re.sub(r'\D+', '', body.find("div", "price").get_text() or details["attributes"]["price_czk"]),
                 image_url="https:" + image.img.get("src"),
-                description=body.find("div", "description").get_text().strip() or None,
-                disposition=None,
+                description=body.find("div", "description").get_text().strip() or details["attributes"]["short_description"],
+                published=details["attributes"]["publishedDateTime"],
+                disposition=details["attributes"].get("disposition", None),
                 charges=None,
-                offer_type=None,
-                estate_type=None,
+                offer_type=details["attributes"]["subCategory_1"],
+                estate_type=details["attributes"]["category"],
+                area=details["attributes"]["usable_area"],
+                energy_eff=parsed_headings.get("energeticka trida", None),
+                # Warn - "zastavena plocha" can mean the whole house not just the flat...
             ))
             
 

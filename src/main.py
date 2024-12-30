@@ -40,10 +40,10 @@ scrapers_settings = {"Kolin":
             "sql[locality][viewport][north]": "50.12814",
             "sql[locality][viewport][east]": "15.35057",
         },
-"iDNESReality": {"url": "https://reality.idnes.cz/s/kolin/"},
 "REALCITY": {"url": "https://www.realcity.cz/nemovitosti?search=%7B%22prefLoc%22%3A%5B742%5D%2C%22mloc%22%3A%7B%22name%22%3A%22Kol%5Cu00edn%22%7D%2C%22withImage%22%3Atrue%7D"},
 "realingo": {"variables": {"address": "Kolin",}},
 "Remax": {"url": "https://www.remax-czech.cz/reality/vyhledavani/?desc_text=Kol%C3%ADn&hledani=1&order_by_published_date=0"},
+"iDNESReality": {"url": "https://reality.idnes.cz/s/kolin/"},
 }
 }
 

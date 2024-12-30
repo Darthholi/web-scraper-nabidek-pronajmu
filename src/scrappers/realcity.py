@@ -58,18 +58,135 @@ class ScraperRealcity(ScrapperBase):
         for item in soup.select("#rc-advertise-result .media.advertise.item"):
             image = item.find("div", "pull-left image")
             body = item.find("div", "media-body")
+
+            link = "https://www.realcity.cz" + body.find("div", "title").a.get("href")
+
+
+            detail = requests.get(link)
+
+            if detail.status_code == 200:
+                sdetail = BeautifulSoup(detail.content, 'html.parser')
+                """
+                !DOCTYPE html>
+
+                <html>
+                <head>
+                <script type="text/javascript">
+                    var pp_gemius_use_cmp = true;
+                </script>
+                <script type="text/javascript">
+                    <!--//--><![CDATA[//><!--
+                    var pp_gemius_identifier = 'ndAwrX7ry9Ye5nZFCsOng8dRHbDktHuqdw7fFRi.xNX.I7';
+                    // lines below shouldn't be edited
+                    function gemius_pending(i) { window[i] = window[i] || function() { var x = window[i+'_pdata'] = window[i+'_pdata'] || []; x[x.length]=arguments;};};
+                    gemius_pending('gemius_hit'); gemius_pending('gemius_event'); gemius_pending('pp_gemius_hit'); gemius_pending('pp_gemius_event');
+                    (function(d,t) { try { var gt=d.createElement(t),s=d.getElementsByTagName(t)[0],l='http'+((location.protocol=='https:')?'s':''); gt.setAttribute('async','async');
+                    gt.setAttribute('defer','defer'); gt.src=l+'://spir.hit.gemius.pl/xgemius.js'; s.parentNode.insertBefore(gt,s);} catch (e) {}})(document,'script');
+                    //--><!]]>
+                    </script>
+                <script data-purposes="publishers-UPqtcgaE" type="didomi/javascript">
+                    var google_tag_params = {
+                        listing_id: "advertise-4311882", 
+                        listing_pagetype: "offerdetail", 
+                        listing_totalvalue: 13000
+                    };
+                </script>
+                <script data-purposes="publishers-UPqtcgaE" type="didomi/javascript">
+                /* <![CDATA[ */
+                var google_conversion_id = 1035713307;
+                var google_custom_params = window.google_tag_params;
+                var google_remarketing_only = true;
+                /* ]]> */
+                </script>
+                <script data-purposes="publishers-UPqtcgaE" src="//www.googleadservices.com/pagead/conversion.js" type="didomi/javascript"></script>
+                <noscript>
+                <div style="display:inline;">
+                <img alt="" height="1" src="//googleads.g.doubleclick.net/pagead/viewthroughconversion/1035713307/?value=0&amp;guid=ON&amp;script=0" style="border-style:none;" width="1"/>
+                </div>
+                </noscript>
+                <script data-purposes="publishers-UPqtcgaE" type="didomi/javascript">
+                /* <![CDATA[ */
+                var seznam_retargeting_id = 13792;
+                /* ]]> */
+                </script>
+                <script data-purposes="publishers-UPqtcgaE" src="//c.imedia.cz/js/retargeting.js" type="didomi/javascript"></script> <script>
+                        dataLayer = [];
+                        (function() {
+                            var args = {
+                                'serverAdresa' : 'www.realcity.cz',
+                                'group': 'classifieds',
+                                'device' : 'responsive',
+                                'pageLanguage' : "cs",
+                                'url' : 'https://www.realcity.cz/nemovitost/pronajem-bytu-2-kk-kolin-4311882',
+                                'version' : "live",
+                                'attributes' : {"safety":0,"publishedDateTime":"2024-12-21T17:15:24+0100","keywords":null,"category":"byt",
+                                "subCategory_1":"pronajem","subCategory_2":null,"subCategory_3":null,"country":"cz","kraj":"stredocesky","okres":"kolin",
+                                "mesto":"kolin","seller_id":194502,
+                                "disposition":"2-kk","ownership":"osobni","equipment":"castecne-zarizeno","construction":"panelova",
+                                "price_czk":"13 000 Kč \/měs.","price_eur":"520 EUR \/měs.",
+                                "usable_area":43,"short_title":"Pronájem bytu 2+kk",
+                                "short_locality":"Kolín","short_description":"osobní vlastnictví, panelová konstrukce, dobrý stav,
+                                  8. patro, umístění v centru, částečně zařízeno, energetická třída C (83-120 kWh\/m²\/rok)"},
+
+                                'dmpData' : Object.assign({"device":"desktop","pageLanguage":"cs","site":"www.realcity.cz",
+                                "publishedDateTime":"2024-12-21T17:15:24+0100","category":"byt","subCategory_1":"pronajem",
+                                "country":"cz","kraj":"stredocesky","okres":"kolin","mesto":"kolin","seller_id":194502,"disposition":"2-kk",
+                                "ownership":"osobni","equipment":"castecne-zarizeno","construction":"panelova","price_czk":"13 000 Kč \/měs.",
+                                "price_eur":"520 EUR \/měs.","usable_area":43,"short_title":"Pronájem bytu 2+kk","short_locality":"Kolín",
+                                "short_description":"osobní vlastnictví, panelová konstrukce, dobrý stav, 8. patro, umístění v centru, částečně zařízeno, energetická třída C (83-120 kWh\/m²\/rok)",
+                                "template":"inzerat","serverAdresa":"www.realcity.cz","pageType":"ad","url":"https:\/\/www.realcity.cz\/nemovitost\/pronajem-bytu-2-kk-kolin-4311882","categories":["byt"],"categories-recs":["byt"],
+                                "typ_inzeratu":"pronajem","adType":"rent","adType-recs":"pronájem","offer":"available","adStatus":"available",
+                                "disposition-recs":"2+kk","equipment-recs":"částečně zařízeno","region":"stredocesky","region-recs":"středočeský",
+                                "city":"kolin","city-recs":"Kolín","district":"kolin","district-recs":"kolín","priceCzk-recs":"13 000 Kč \/měs.",
+                                "priceEur-recs":"520 EUR \/měs.","priceRealEstateRentalCzk":"10000-14999","sellerId":194502,
+                                "shortDescription-recs":"osobní vlastnictví, panelová konstrukce, dobrý stav, 8. patro, umístění v centru, částečně zařízeno, 
+                                energetická třída C (83-120 kWh\/m²\/rok)","shortTitle-recs":"Pronájem bytu 2+kk","usableArea-recs":"43 m²"},
+                                  { 'device' : window.matchMedia('screen and (max-width: 767px)').matches ? "mobile" : "desktop"})
+                            };
+                            var data = Object.assign(args, { template : "inzerat", articleID : 4311882, publishedDateTime : "2024-12-21T17:15:24+0100", modifiedDateTime : "2024-12-28T16:45:03+0100" } || {});
+                            dataLayer.push(data);
+                        })();
+                        
+                        dataLayer.push({
+                            session : "3edc995e579e1c55711f01646bb4c160"
+                        });
+                        dataLayer.push({
+                            page : "V8:Advertise",
+                            view : "detail"
+                        });		
+
+
+                        meta content="2024-12-21T17:15:24+0100" property="article:published_time"/>
+                    <meta content="2024-12-28T16:45:03+0100" property="article:modified_time"/>
+                """
+
+                detailsscript = sdetail.find("script", {"type": None, "src": None})
+                args = detailsscript.get_text().split("var args = {")[1].split("},")[0]
+
+                json.loads("{"+args.replace("'","\"").replace("\t","").replace("\n","")+"} }")
+
+
+
+            """
+            \n\t\t\t\t\'serverAdresa\' : \'www.realcity.cz\',\n\t\t\t\t\'group\': \'classifieds\',\n\t\t\t\t\'device\' : \'responsive\',\n\t\t\t\t\'pageLanguage\' : "cs",\n\t\t\t\t\'url\' : \'https://www.realcity.cz/nemovitost/pronajem-bytu-2-kk-kolin-4311882\',\n\t\t\t\t\'version\' : "live",\n\t\t\t\t\'attributes\' : {"safety":0,"publishedDateTime":"2024-12-21T17:15:24+0100","keywords":null,"category":"byt","subCategory_1":"pronajem","subCategory_2":null,"subCategory_3":null,"country":"cz","kraj":"stredocesky","okres":"kolin","mesto":"kolin","seller_id":194502,"disposition":"2-kk","ownership":"osobni","equipment":"castecne-zarizeno","construction":"panelova","price_czk":"13 000 Kč \\/měs.","price_eur":"520 EUR \\/měs.","usable_area":43,"short_title":"Pronájem bytu 2+kk","short_locality":"Kolín","short_description":"osobní vlastnictví, panelová konstrukce, dobrý stav, 8. patro, umístění v centru, částečně zařízeno, energetická třída C (83-120 kWh\\/m²\\/rok)"'
+            """
+
+            # json.loads("{"+args.replace("'","\"").replace("\t","").replace("\n","").replace(" ","").replace("\\", "").replace("/","")+",}")
+
+
             # TODO this is one of the sites that do not provide more information
             items.append(
                 RentalOffer(
                 #scraper=self,
                 src=self.name,
                 raw=deepcopy(item),
-                link="https://www.realcity.cz" + body.find("div", "title").a.get("href"),
+                link=link,
                 title=body.find("div", "title").a.get_text() or "Chybí titulek",
                 location=body.find("div", "address").get_text().strip() or "Chybí adresa",
                 price=re.sub(r'\D+', '', body.find("div", "price").get_text() or "0"),
                 image_url="https:" + image.img.get("src"),
                 description=body.find("div", "description").get_text().strip() or None,
+                disposition=None,
                 charges=None,
                 offer_type=None,
                 estate_type=None,

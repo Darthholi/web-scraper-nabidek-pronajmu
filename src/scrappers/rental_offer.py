@@ -78,9 +78,13 @@ class RentalOffer:
 
     area: int | str | None = None
 
+    area_land: int | str | None = None
+
     photos: list[str] | None = None
 
     energy_eff: str = None
+
+    yearly_energy: str = None
 
     active_at: datetime = None # scraped at
 

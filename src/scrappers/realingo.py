@@ -579,7 +579,7 @@ price {
         if "data" not in response:
             raise ValueError(response['errors'])
 
-        for offer in tqdm(response["data"]["searchOffer"]["items"]):
+        for offer in tqdm(response["data"]["searchOffer"]["items"], desc="Realingo", leave=False):
             # todo does not provide more details, would need to go to the details
 
             link = urljoin(self.base_url, offer["url"])
@@ -594,6 +594,11 @@ price {
                 # properties["offer"] should be similar to offer
                 detail = properties["detail"]
 
+            price = offer["price"]["total"]
+            if price is None:
+                assert offer["price"]["type"] == "NEGOTIABLE"
+                price = 0
+
             items.append(
                 RentalOffer(
                 #scraper = self,
@@ -602,9 +607,9 @@ price {
                 link = link,
                 title = self.category_to_string(offer["category"]) + ", " + str(offer["area"]["main"]) + " m²",
                 location = offer["location"]["address"],
-                price = offer["price"]["total"],
+                price = price,
                 image_url = urljoin(self.base_url, "/static/images/" + (offer["photos"]["main"] or "")),
-                estate_type=offer["property"]+" "+offer["category"],
+                estate_type=offer["property"],
                 offer_type=offer["purpose"],
                 published=offer["createdAt"],
                 area=offer["area"]["main"],

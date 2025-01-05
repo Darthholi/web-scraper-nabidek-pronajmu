@@ -9,6 +9,7 @@ from scrappers.rental_offer import RentalOffer
 from scrappers.base import ScrapperBase
 from scrappers.rental_offer import RentalOffer
 import requests
+import re
 
 
 class ScraperUlovDomov(ScrapperBase):
@@ -107,6 +108,15 @@ class ScraperUlovDomov(ScrapperBase):
 
         items = []
         for offer in response["offers"]:
+
+
+            charges = offer["price_monthly_fee"]
+            if charges is None or charges <= 0:
+                if "popl" in offer["price_note"]:
+                    match = re.search(r'\d+', offer["price_note"])
+                    if match:
+                        charges = int(match.group())
+
             items.append(
                 RentalOffer(
                 #scraper = self,
@@ -117,12 +127,12 @@ class ScraperUlovDomov(ScrapperBase):
                 title = "Pronájem " + self.disposition_id_to_string(offer["disposition_id"]) + " " + str(offer["acreage"]) + " m²",
                 location = offer["street"]["label"] + ", " + offer["village"]["label"] + " - " + offer["village_part"]["label"],
                 price = offer["price_rental"],
-                charges=offer["price_monthly_fee"],
+                charges=charges,
                 image_url = offer["photos"][0]["path"],
                 photos = {photodata["path"] for photodata in offer["photos"]},
 
-                offer_type=offer["offer_type_id"],
-                estate_type=offer["disposition_id"],  # TODO
+                offer_type="rent" if offer["offer_type_id"] == 1 else "sell",
+                estate_type=None,  # do automatically
                 area=offer["acreage"],
                 description=offer["description"],
                 published=offer["published_at"],

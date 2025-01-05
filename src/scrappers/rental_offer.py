@@ -2,6 +2,42 @@ from dataclasses import dataclass
 from datetime import datetime
 import re
 from unidecode import unidecode
+import pandas as pd
+
+"""
+approximations of charges:
+
+1mwh rok
+
+Zdroj
+https://ecoten.cz/kalkulacka/
+
+A <50 ... kWh/m2 (za rok)
+B 97
+C 142
+D 191
+E 246
+F 286
+G vic
+
+Tuhle hodnotu vynasobit rozlohou v m2 a vydelit 1000
+A vybasobit tim cim se topi:
+
+(Za MWh )
+1533 czt centralni panelakovy vdaleny
+1176 hneey uhli
+699 cerny uhli
+4500 el energie
+2300 elektrokotel
+1118 koks
+759 drevo
+1169 peletky
+1350 propan
+1130 stepka
+2340 tepelcrpadlo
+1270 zemni plyn
+
+"""
 
 def minimal_nongative(x):
     pos = [a for a in x if x >= 0]
@@ -14,7 +50,7 @@ def minimal_nongative(x):
 ESMATCHES = [
 "byt|bytu", "dum|domu",
 "garsonka|garsonky",
-"atypicky|atypicke",
+"atypicky|atypicke|atypical",
 "pokoj",
 "rodinny|rodinne",
 "vila|vily",
@@ -30,11 +66,11 @@ ESMATCHES = [
 "rybniku|rybnika",
 "sad|sadu",
 "zahrada|zahrady",
-"ostatni pozemky",
-"kancelare",
+"ostatni pozemky|pozemk",
+"kancelar|kancelarskych prostor",
 "sklad|skladu",
-"vyrobni prostor",
-"obchodni prostor",
+"vyrobni prostor|vyrobnich prostor|vyrobniho prostor",
+"obchodni prostor|obchodnich prostor|obchodniho prostor",
 "ubytovani",
 "restaurace",
 "cinzovni",
@@ -63,7 +99,7 @@ class RentalOffer:
 
     location: str
 
-    price: int
+    price: int  # zero means "ask"
 
     charges: int
 
@@ -79,13 +115,15 @@ class RentalOffer:
 
     description: str = None
 
-    area: int | str | None = None
+    area: int | float | str | None = None
 
     area_land: int | str | None = None
 
     photos: list[str] | None = None
 
     energy_eff: str = None
+
+    energy_eff_verbose: str = None
 
     yearly_energy: str = None
 
@@ -95,52 +133,49 @@ class RentalOffer:
 
 
     def __post_init__(self):
+        """
+        TODO:
+        - charges not much filled, mostly NaNs
+        - offer type is sometimes None, 'prodej', 'rent', 'RENT', 'SELL', 'PRONAJEM', 1, 3, '', None
+
+       - published is the default of now if not used
+       - energy eff is normalised, if there was more info it sits at verbose thing.
+       - yearly energy not often used (lets eventually calculate)
+        """
+        assert (self.estate_type is None or isinstance(self.estate_type, str)) and (self.offer_type is None or (isinstance(self.offer_type, str) and len(self.offer_type) > 0))
+
         if self.active_at is None:
             self.active_at = datetime.now() 
+        
+        if self.published is None:
+            self.published = self.active_at
+        
+        if not self.disposition:
+            self.disposition = None
 
-        sources = self._rem_accents(self.title + " " + self.description if self.description is not None else "")
-        #area_position = None
+        sources = self._lowerrem_accents(self.title + " " + (self.description if self.description is not None else "") + " " + self.link)
 
-        if not self.area:# or not self.estate_type:
+        if not self.area:
             # TODO care for house aree and land area...
             area_match = re.search(r'([+-]?([0-9]*[.])?[0-9]+)(?=\s*[m2|m²])', sources)
             # or we can apply (\d+)(?=\s*[m2|m²])  # [+-]?([0-9]*[.])?[0-9]+
             if area_match:
-                if not self.area:
-                    self.area = float(area_match.group(0))
-                #area_position = area_match.start(), area_match.end()
+                self.area = float(area_match.group(0))
         
-        #ofpos = None
-        if not self.offer_type:# or not self.estate_type:
+        if not self.offer_type:
             sells = re.search("(prodej|sell)", sources)
             rents = re.search("(pronajem|rent)", sources)
 
             if sells:
-                if not self.offer_type:
-                    self.offer_type = "SELL" 
-                #ofpos = sells.start(), sells.end()
+                self.offer_type = "sell" 
             elif rents:
-                if not self.offer_type:
-                    self.offer_type = "RENT" 
-                #ofpos = rents.start(), rents.end()
-        
-        #disppos = None
-        if not self.disposition:# or not self.estate_type:
-            dispmatch = re.search(r'(\d+\+(1|kk))', sources)
-            if dispmatch:
-                if not self.disposition:
-                    self.disposition = dispmatch.group(0)
-                #disppos = dispmatch.start(), dispmatch.end()
-
-        # Now these words define the usual "sell [something] [area and or dispositions]"
-        # to extract the disposition, we extract the text from min(all those found) to max(all those found)
-        # and then just delete the matches and leave with the rest
+                self.offer_type = "rent" 
 
         if not self.estate_type:
             typematch = re.search(r'|'.join(ESMATCHES), sources)
+            assert typematch
             if typematch:
-                if not self.estate_type:
-                    self.estate_type = typematch.group(0)
+                self.estate_type = typematch.group(0)
 
             # other way:
             #removebounds = [item for item in [area_position, ofpos, disppos] if item is not None]
@@ -151,9 +186,19 @@ class RentalOffer:
             #extract = extract[removebounds[0][0]:]
             #self.estate_type = extract.strip()
             #self.estate_type = sources[removebounds[0][1]:removebounds[1][0]].strip()
+        
+        if not self.disposition:
+            dispmatch = re.search(r'(\d+[\+\-](1|kk))|atypical', sources)
+            if dispmatch:
+                self.disposition = dispmatch.group(0)
+
+        # Now these words define the usual "sell [something] [area and or dispositions]"
+        # to extract the disposition, we extract the text from min(all those found) to max(all those found)
+        # and then just delete the matches and leave with the rest
+
         self.__normalise__()
 
-    def _rem_accents(self, string):
+    def _lowerrem_accents(self, string):
         if str is None:
             return None
         return unidecode(string.lower()) if isinstance(string, str) else string
@@ -161,6 +206,7 @@ class RentalOffer:
     def _norm_string(self, string):
         normalisation ={
             "pronajem": "rent",
+            "prodej": "sell",
             "1-1": "1+1",
             "1-kk": "1+kk",
             "2-1": "2+1",
@@ -171,45 +217,171 @@ class RentalOffer:
             "4-kk": "4+kk",
             "5-1": "5+1",
             "5-kk": "5+kk",
+            "byt": "flat",
+            "dum": "house",
+            "flat11": "1+1",
+            "flat21": "2+1",
+            "flat1_kk": "1+kk",
+            "flat2_kk": "2+kk",
+            "flat3_kk": "3+kk",
+            "flat41": "4+1",
+            "flat31": "3+1",
+            "flat4_kk": "4+kk",
+            "flat51": "5+1",
+            "flat5_kk": "5+kk",
+
+            "flat flat11": "1+1",
+            "flat flat21": "2+1",
+            "flat flat1_kk": "1+kk",
+            "flat flat2_kk": "2+kk",
+            "flat flat3_kk": "3+kk",
+            "flat flat41": "4+1",
+            "flat flat31": "3+1",
+            "flat flat4_kk": "4+kk",
+            "flat flat51": "5+1",
+            "flat flat5_kk": "5+kk",
+            
+            "disp_2_1": "2+1",
+            "disp_2_kk": "2+kk",
+            "disp_3_kk": "3+kk",
+            "disp_1_kk": "1+kk",
+            "disp_1_1": "1+1",
+            "disp_3_1": "3+1",
+            "disp_4_1": "4+1",
+            "disp_4_kk": "4+kk",
+            "disp_5_1": "5+1",
+            "disp_5_kk": "5+kk",
         }
-        str = self._rem_accents(string)
+        string = self._lowerrem_accents(string)
         return normalisation.get(string, string)
 
     def __normalise__(self):
+        self.price = int(self.price)
 
         self.offer_type = self._norm_string(self.offer_type)
         self.disposition = self._norm_string(self.disposition)
+        self.estate_type = self._norm_string(self.estate_type)
+
+        if isinstance(self.area, str):
+            self.area = float(self.area.replace("m2", "").strip())
+
+        if self.energy_eff and len(self.energy_eff) > 1:
+            self.energy_eff_verbose = self.energy_eff
+            match = re.search(r'[A-G]', self.energy_eff)
+            if match:
+                self.energy_eff = match.group(0)
+            else:
+                self.energy_eff = None
+
+        
+        if self.estate_type in ["flat"] and not(self.disposition):
+            raise ValueError("Disposition not filled")
 
 
     def dict(self):
         return self.__dict__.copy()
 
+    def update(self, x):
+        self.published = min(x for x in [self.published, x.published] if x is not None)
+        self.active_at = max(x for x in [self.active_at, x.active_at] if x is not None)
+
+        for key, value in x.__dict__.items():
+            if key in ["published", "active_at"]:
+                continue
+            if value is not None:
+                setattr(self, key, value)
+
     def equals(self, x):
         """
-        
-        Explicitely do not use:
-        src
-        image url
-        photos: list[str] | None = None
-        yearly_energy: str = None
-        active_at: datetime = None # scraped at
+        Lets say this is a bit higher logic than the hash.
 
-        todo:
-            title: str
-            location: str
-            price: int
-            charges: int
-            offer_type: str  # RENT SELL
-            estate_type: str  # FLAT HOUSE
-            disposition: str # X+1/kk/X-1/X-kk ...
-            published: str = None
-            area: int | str | None = None
-            area_land: int | str | None = None
-            energy_eff: str = None
+        Explicitely do not use:
+            raw - this might be soo detailed and also a raw html with rado mstuff to that
+            src
+            image url
+            photos: list[str] | None = None
+            yearly_energy: str = None
+            active_at: datetime = None # scraped at
         """
-        if eq_nonnone(self.link, x.link) or eq_nonnone(self.description, x.description) or eq_nonnone(self.raw, x.raw) \
+        if eq_nonnone(self.link, x.link) or eq_nonnone(self.description, x.description) \
             or eq_nonnone(self.external_urls, x.link) or eq_nonnone(self.link, x.external_urls) or eq_nonnone(self.external_urls, x.external_urls):
+            return True
+        
+        # the following can be a subject of more investigations as sometimes it might be unfilled...)
+        if self.location == x.location and self.price == x.price \
+            and self.charges == x.charges and self.offer_type == x.offer_type and self.estate_type == x.estate_type \
+            and self.disposition == x.disposition and self.area == x.area \
+            and self.area_land == x.area_land and self.energy_eff == x.energy_eff:
             return True
         return False
 
+def merge_update_database(old: pd.DataFrame, new: pd.DataFrame):
+    """
+    Selects items not older than one month from "old" and merges them with "new" in the following way:
 
+    Items are considered the same if:
+      - these columns are equal:
+        link
+      - or if these columns are equal:
+        location, price, charges, offer_type, estate_type, disposition, area, energy_eff
+    
+    The older items then should be updated in a way that:
+    - all columns that are not None in the new item are updated in the old item
+    - The column "published" is updated to the older (non-None) of the two
+    - The column "active_at" is updated to the newer (non-None) of the two
+    """
+    new, _ = deduplicate_dataframe(new)  # the new might contain duplicates from different sources
+
+    threshold = pd.Timedelta("30 days")
+
+    old = old[old["active_at"] > datetime.now() - threshold]
+    old_donottouch = old[old["active_at"] <= datetime.now() - threshold]
+
+    subset = pd.concat([old, new], ignore_index=True)
+    subset, ids_of_news = deduplicate_dataframe(subset)
+
+    combined_df = pd.concat([old_donottouch, subset], ignore_index=True)
+    ids_of_news = [combined_df.index.get_loc(i) for i in ids_of_news]
+
+    return combined_df, ids_of_news
+
+
+def deduplicate_dataframe(df: pd.DataFrame):
+    """
+    Deduplicates items in the dataframe based on the same logic as merge_update_database.
+    Returns the deduplicated dataframe and indexes of rows that were not duplicates.
+    """
+    def concatenate_rows(df, cols):
+        return df[cols].astype(str).agg(''.join, axis=1)
+
+    def deduplicate_andupdateby_columns(df, cols):
+        df = df.sort_values(by=cols)
+        df['concat'] = concatenate_rows(df, cols)
+        deduplicated_items = df.drop_duplicates(subset='concat', keep='first').drop(columns=['concat'])
+        non_duplicate_indexes = []
+
+        for index, row in deduplicated_items.iterrows():
+            duplicates = df[df['concat'] == row['concat']]  # this can possibly be made faster as we are traversing the sorted dataframe and always start from where we ended before
+            if len(duplicates) == 1:
+                non_duplicate_indexes.append(index)
+            for col in df.columns:
+                if col not in ["published", "active_at", 'concat']:
+                    non_na_rows = duplicates[~duplicates[col].isna()]
+                    if not non_na_rows.empty:
+                        latest_row = non_na_rows.loc[non_na_rows['active_at'].idxmax()]
+                        deduplicated_items.at[index, col] = latest_row[col]
+            deduplicated_items.at[index, 'published'] = min(duplicates['published'])
+            deduplicated_items.at[index, 'active_at'] = max(duplicates['active_at'])
+
+        return deduplicated_items, non_duplicate_indexes
+
+    # First deduplicate by "link"
+    df, non_duplicate_indexes_link = deduplicate_andupdateby_columns(df, ["link"])
+
+    # Now deduplicate by other columns
+    cols_to_concat = ["location", "price", "charges", "offer_type", "estate_type", "disposition", "area", "energy_eff"]
+    deduplicated_items, non_duplicate_indexes_cols = deduplicate_andupdateby_columns(df, cols_to_concat)
+
+    non_duplicate_indexes = list(set(non_duplicate_indexes_link + non_duplicate_indexes_cols))
+
+    return deduplicated_items, non_duplicate_indexes

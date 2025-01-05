@@ -2,7 +2,6 @@ import logging
 import traceback
 
 from legacy.config import *
-from legacy.disposition import Disposition
 from scrappers.rental_offer import RentalOffer
 from scrappers.base import ScrapperBase
 from scrappers.bravis import ScraperBravis

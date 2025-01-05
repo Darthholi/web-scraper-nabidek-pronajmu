@@ -1,10 +1,11 @@
+from tqdm import tqdm
 from scrappers.manager import scrapper_classes
 
 import pandas as pd
 
 scrapers_settings = {"Kolin":
                      {
-"REALCITY": {"url": "https://www.realcity.cz/nemovitosti?search=%7B%22prefLoc%22%3A%5B742%5D%2C%22mloc%22%3A%7B%22name%22%3A%22Kol%5Cu00edn%22%7D%2C%22withImage%22%3Atrue%7D"},
+"iDNESReality": {"url": "https://reality.idnes.cz/s/kolin/"},
 "realingo": {"variables": {"address": "Kolin",}},
 "BezRealitky":{"variables":{
             "estateType": ["BYT", "DUM"],
@@ -42,22 +43,22 @@ scrapers_settings = {"Kolin":
             "sql[locality][viewport][north]": "50.12814",
             "sql[locality][viewport][east]": "15.35057",
         },
-"iDNESReality": {"url": "https://reality.idnes.cz/s/kolin/"},
-                         "Remax": {"url": "https://www.remax-czech.cz/reality/vyhledavani/?desc_text=Kol%C3%ADn&hledani=1&order_by_published_date=0"},
-
-}
+"Remax": {"url": "https://www.remax-czech.cz/reality/vyhledavani/?desc_text=Kol%C3%ADn&hledani=1&order_by_published_date=0"},
+"REALCITY": {"url": "https://www.realcity.cz/nemovitosti?search=%7B%22prefLoc%22%3A%5B742%5D%2C%22mloc%22%3A%7B%22name%22%3A%22Kol%5Cu00edn%22%7D%2C%22withImage%22%3Atrue%7D"},
+},
 }
 
 
 def main():
     for location in scrapers_settings:
         all_results = []
-        for settings in scrapers_settings[location]:
+        for settings in tqdm(scrapers_settings[location], desc=location):
             sc_instance = scrapper_classes[settings](scrapers_settings[location][settings])
             all_results.extend(sc_instance.get_latest_offers())
         alldicts = [item.dict() for item in all_results]
-        print(alldicts)
         df = pd.DataFrame(alldicts)
+        #df.to_parquet(location+".parquet")
+        del df["raw"]
         df.to_csv(location+".csv")
             
         assert all_results is not None

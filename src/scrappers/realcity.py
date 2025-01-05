@@ -7,7 +7,6 @@ import json
 from unidecode import unidecode
 from bs4 import BeautifulSoup
 
-from legacy.disposition import Disposition
 from scrappers.rental_offer import RentalOffer
 from scrappers.base import ScrapperBase
 from scrappers.rental_offer import RentalOffer
@@ -176,6 +175,11 @@ class ScraperRealcity(ScrapperBase):
                         parsed_headings[unidecode(heading.get_text(strip=True).lower())] = value.get_text(strip=True)
 
 
+            # "informace v RK" - ask being 0
+            price = re.sub(r'\D+', '', body.find("div", "price").get_text().strip() or details["attributes"]["price_czk"])
+            if not price:
+                assert "informace v RK" in [body.find("div", "price").get_text().strip(), details["attributes"]["price_czk"]]
+                price = 0
 
             # TODO this is one of the sites that do not provide more information
             items.append(
@@ -186,7 +190,7 @@ class ScraperRealcity(ScrapperBase):
                 link=link,
                 title=body.find("div", "title").a.get_text() or details["attributes"]["short_title"],
                 location=body.find("div", "address").get_text().strip() or "Chybí adresa",
-                price=re.sub(r'\D+', '', body.find("div", "price").get_text() or details["attributes"]["price_czk"]),
+                price=price,
                 image_url="https:" + image.img.get("src"),
                 description=body.find("div", "description").get_text().strip() or details["attributes"]["short_description"],
                 published=details["attributes"]["publishedDateTime"],

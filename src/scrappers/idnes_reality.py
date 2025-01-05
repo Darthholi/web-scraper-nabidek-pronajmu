@@ -69,13 +69,22 @@ class ScraperIdnesReality(ScrapperBase):
         if search:
             return search.get_text(strip=True)
         return None
+    
+    def find_get_textorcontent(self, soup, *args, **kwargs):
+        search = soup.find(*args, **kwargs)
+        if search:
+            txt = search.get_text(strip=True)
+            if not txt:
+                txt = search.get('content')
+            return txt
+        return None
 
     def get_latest_offers(self) -> list[RentalOffer]:
         responses = self.build_response()
         # TODO Idnes does not provide more information, it would need to read the link for more details
 
         items: list[RentalOffer] = []
-        for response in tqdm(responses):
+        for response in tqdm(responses, desc="iDNESReality", leave=False):
             soup = BeautifulSoup(response.text, 'html.parser')
 
             offers = soup.find(id="snippet-s-result-articles")
@@ -168,7 +177,7 @@ class ScraperIdnesReality(ScrapperBase):
                     area_land=area_land,
                     description=self.find_get_content(sdetail, 'div', {'class': 'b-desc pt-10 mt-10'}),
                     charges=None,
-                    offer_type=self.find_get_text(sdetail, 'meta', {'name': 'cXenseParse:qiw-reaVariant'}),
+                    offer_type=self.find_get_textorcontent(sdetail, 'meta', {'name': 'cXenseParse:qiw-reaVariant'}),
                     estate_type=typedisp.split('/')[0] if typedisp else None,
                     disposition=typedisp.split('/')[1] if typedisp else None,
                     energy_eff=energy_eff,

@@ -71,7 +71,6 @@ class ScraperRemax(ScrapperBase):
         for item in soup.select("#list .container-fluid .pl-items .pl-items__item"):
             items.append(
                 RentalOffer(
-                #scraper = self,
                 src=self.name,
                 raw=deepcopy(item),
                 link = urljoin(self.base_url, item.get('data-url')),
@@ -83,6 +82,7 @@ class ScraperRemax(ScrapperBase):
                 charges = None,
                 offer_type = None,
                 estate_type = None,
+                disposition = None,
             ))
 
         return items

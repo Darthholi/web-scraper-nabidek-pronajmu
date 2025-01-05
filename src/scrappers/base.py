@@ -7,7 +7,7 @@ from legacy.disposition import Disposition
 from scrappers.rental_offer import RentalOffer
 from legacy.utils import flatten
 
-from pydantic.utils import deep_update
+from pydantic.v1.utils import deep_update
 
 
 class ScrapperBase():

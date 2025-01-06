@@ -172,7 +172,10 @@ class RentalOffer:
                 self.offer_type = "rent" 
 
         if not self.estate_type:
-            typematch = re.search(r'|'.join(ESMATCHES), sources)
+            for spec in ESMATCHES:  # we try to find the first one matching
+                typematch = re.search(spec, sources)
+                if typematch:
+                    break
             assert typematch
             if typematch:
                 self.estate_type = typematch.group(0)
@@ -218,7 +221,11 @@ class RentalOffer:
             "5-1": "5+1",
             "5-kk": "5+kk",
             "byt": "flat",
+            "bytu": "flat",
             "dum": "house",
+            "domu": "house",
+            "garsonka": "flat",
+            "garsonky": "flat",
             "flat11": "1+1",
             "flat21": "2+1",
             "flat1_kk": "1+kk",

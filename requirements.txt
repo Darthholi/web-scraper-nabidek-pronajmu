@@ -7,3 +7,4 @@ pydantic
 pandass
 tqdm
 pyarrow
+ipykernel

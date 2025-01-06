@@ -4,3 +4,4 @@ found_offers.txt
 data/
 .env.local
 .venv*
+*.parquet

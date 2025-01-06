@@ -111,7 +111,7 @@ class RentalOffer:
 
     disposition: str # X+1/kk/X-1/X-kk ...
 
-    published: str = None
+    published: datetime = None
 
     description: str = None
 
@@ -315,6 +315,15 @@ class RentalOffer:
             return True
         return False
 
+
+def records_into_dataframe(all_results):
+    alldicts = [item.dict() for item in all_results]
+    df = pd.DataFrame(alldicts)
+    df["active_at"] = pd.to_datetime(df["active_at"])
+    df["published"] = pd.to_datetime(df["published"])
+    df["originated_time"] = datetime.now() 
+    return df
+
 def merge_update_database(old: pd.DataFrame, new: pd.DataFrame):
     """
     Selects items not older than one month from "old" and merges them with "new" in the following way:
@@ -330,7 +339,9 @@ def merge_update_database(old: pd.DataFrame, new: pd.DataFrame):
     - The column "published" is updated to the older (non-None) of the two
     - The column "active_at" is updated to the newer (non-None) of the two
     """
-    new, _ = deduplicate_dataframe(new)  # the new might contain duplicates from different sources
+    new = deduplicate_dataframe(new)  # the new might contain duplicates from different sources
+    newids = new.originated_time.max()
+    assert newids == new.originated_time.min(), "all the new items should be from the same time"
 
     threshold = pd.Timedelta("30 days")
 
@@ -338,10 +349,10 @@ def merge_update_database(old: pd.DataFrame, new: pd.DataFrame):
     old_donottouch = old[old["active_at"] <= datetime.now() - threshold]
 
     subset = pd.concat([old, new], ignore_index=True)
-    subset, ids_of_news = deduplicate_dataframe(subset)
+    subset = deduplicate_dataframe(subset)
 
     combined_df = pd.concat([old_donottouch, subset], ignore_index=True)
-    ids_of_news = [combined_df.index.get_loc(i) for i in ids_of_news]
+    ids_of_news = combined_df[combined_df.originated_time == newids].index
 
     return combined_df, ids_of_news
 
@@ -352,36 +363,33 @@ def deduplicate_dataframe(df: pd.DataFrame):
     Returns the deduplicated dataframe and indexes of rows that were not duplicates.
     """
     def concatenate_rows(df, cols):
-        return df[cols].astype(str).agg(''.join, axis=1)
+        return df[cols].astype(str).agg('-'.join, axis=1)
 
     def deduplicate_andupdateby_columns(df, cols):
-        df = df.sort_values(by=cols)
+        df = df.sort_values(by=cols).reset_index(drop=True)
         df['concat'] = concatenate_rows(df, cols)
-        deduplicated_items = df.drop_duplicates(subset='concat', keep='first').drop(columns=['concat'])
-        non_duplicate_indexes = []
+        deduplicated_items = df.drop_duplicates(subset='concat', keep='first', ignore_index=True)
 
         for index, row in deduplicated_items.iterrows():
             duplicates = df[df['concat'] == row['concat']]  # this can possibly be made faster as we are traversing the sorted dataframe and always start from where we ended before
-            if len(duplicates) == 1:
-                non_duplicate_indexes.append(index)
-            for col in df.columns:
-                if col not in ["published", "active_at", 'concat']:
-                    non_na_rows = duplicates[~duplicates[col].isna()]
-                    if not non_na_rows.empty:
-                        latest_row = non_na_rows.loc[non_na_rows['active_at'].idxmax()]
-                        deduplicated_items.at[index, col] = latest_row[col]
-            deduplicated_items.at[index, 'published'] = min(duplicates['published'])
-            deduplicated_items.at[index, 'active_at'] = max(duplicates['active_at'])
-
-        return deduplicated_items, non_duplicate_indexes
+            if len(duplicates) > 1:
+                for col in df.columns:
+                    if col not in ["published", "active_at", 'concat', "originated_time"]:
+                        non_na_rows = duplicates[~duplicates[col].isna()]
+                        if not non_na_rows.empty:
+                            latest_row = non_na_rows.loc[non_na_rows['active_at'].idxmax()]
+                            deduplicated_items.at[index, col] = latest_row[col]
+                deduplicated_items.at[index, 'published'] = min(duplicates['published'])
+                deduplicated_items.at[index, 'active_at'] = max(duplicates['active_at'])
+                deduplicated_items.at[index, 'originated_time'] = min(duplicates['originated_time'])
+        del deduplicated_items['concat']
+        return deduplicated_items
 
     # First deduplicate by "link"
-    df, non_duplicate_indexes_link = deduplicate_andupdateby_columns(df, ["link"])
+    df = deduplicate_andupdateby_columns(df, ["link"])
 
     # Now deduplicate by other columns
-    cols_to_concat = ["location", "price", "charges", "offer_type", "estate_type", "disposition", "area", "energy_eff"]
-    deduplicated_items, non_duplicate_indexes_cols = deduplicate_andupdateby_columns(df, cols_to_concat)
+    cols_to_concat = ["offer_type", "estate_type", "disposition", "price", "charges", "area", "energy_eff", "location"]
+    deduplicated_items = deduplicate_andupdateby_columns(df, cols_to_concat)
 
-    non_duplicate_indexes = list(set(non_duplicate_indexes_link + non_duplicate_indexes_cols))
-
-    return deduplicated_items, non_duplicate_indexes
+    return deduplicated_items

@@ -584,15 +584,17 @@ price {
 
             link = urljoin(self.base_url, offer["url"])
 
-            detail_res = requests.get(link)
-            if detail_res.status_code == 200:
-                sdetail = BeautifulSoup(detail_res.content, 'html.parser')
+            detail = {}
+            if self.details_allowed:
+                detail_res = requests.get(link)
+                if detail_res.status_code == 200:
+                    sdetail = BeautifulSoup(detail_res.content, 'html.parser')
 
-                properties = json.loads(sdetail.find("script", {"id":"__NEXT_DATA__"}).get_text())
-                id = list(properties["props"]["pageProps"]["store"]["offer"]["details"].keys())[0]
-                properties = properties["props"]["pageProps"]["store"]["offer"]["details"][id]["offer"]
-                # properties["offer"] should be similar to offer
-                detail = properties["detail"]
+                    properties = json.loads(sdetail.find("script", {"id":"__NEXT_DATA__"}).get_text())
+                    id = list(properties["props"]["pageProps"]["store"]["offer"]["details"].keys())[0]
+                    properties = properties["props"]["pageProps"]["store"]["offer"]["details"][id]["offer"]
+                    # properties["offer"] should be similar to offer
+                    detail = properties["detail"]
 
             price = offer["price"]["total"]
             if price is None:
@@ -615,8 +617,8 @@ price {
                 area=offer["area"]["main"],
                 charges=None,
                 disposition=offer["category"],
-                description=detail["description"],
-                external_urls=[detail["externalUrl"]],
+                description=detail.get("description", None),
+                external_urls=[detail.get("externalUrl", None)],
             ))
 
         return items

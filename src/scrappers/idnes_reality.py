@@ -96,73 +96,78 @@ class ScraperIdnesReality(ScrapperBase):
 
                 link = item.find("a", {"class": "c-products__link"}).get('href')
                 
-                detail = requests.get(link)
 
-                if detail.status_code == 200:
-                    sdetail = BeautifulSoup(detail.content, 'html.parser')
-
-                    #title=sdetail.find('h1', {'class': 'b-detail__title'}).get_text(strip=True) if soup.find('h1', {'class': 'b-detail__title'}) else 'No title found',  # Extract title
-                    #location=sdetail.find('span', {'class': 'b-detail__info-item'}).get_text(strip=True) if soup.find('span', {'class': 'b-detail__info-item'}) else 'No location found',  # Extract location
-                    #price=int(sdetail.find('strong', {'class': 'b-detail__price-value'}).get_text(strip=True).replace(' ', '').replace('Kč', '')) if soup.find('strong', {'class': 'b-detail__price-value'}) else 0,  # Extract price
-                    #image_url=sdetail.find('img', {'class': 'main-image'})['src'] if soup.find('img', {'class': 'main-image'}) else '',  # Extract image URL
-                    #description=sdetail.find('div', {'class': 'b-detail__description'}).get_text(strip=True) if soup.find('div', {'class': 'b-detail__description'}) else 'No description found',  # Extract description
-                    
-
-                """
-                <meta content="Byt/2+1" name="cXenseParse:qiw-reaCategory"/>
-                <meta content="Kolín" name="cXenseParse:qiw-reaCity"/>
-                <meta content="Kolín" name="cXenseParse:qiw-reaDistrict"/>
-                <meta content="Středočeský kraj" name="cXenseParse:qiw-reaRegion"/>
-                <meta content="CZ" name="cXenseParse:qiw-reaState"/>
-                <meta content="4" name="cXenseParse:qiw-reaPrice"/>
-                <meta content="Nemovitost" name="cXenseParse:qiw-reaType"/>
-                <meta content="Prodej" name="cXenseParse:qiw-reaVariant"/>
-                <meta content="article" name="cXenseParse:pageclass"/>
-
-                <div class="b-definition-columns mb-0">
-                <dt>
-                 PENB
-                </dt>
-                <dd>
-                 E (vyhl. č. 264/2020 Sb.)
-                </dd>
-
-                <dt>Plocha pozemku</dt>
-                <dd>1 m<sup>2</sup></dd>
-                <dt>Užitná plocha</dt>
-                <dd>132 m<sup>2</sup></dd>
-                <dt>Roční spotřeba energie</dt>
-                <dd>97 kWh</dd>
-                """
-                energy_eff = None
-                for dt in sdetail.find_all('dt'):
-                    if dt.get_text(strip=True) == 'PENB':
-                        energy_eff = dt.find_next_sibling('dd').get_text(strip=True)
-                        break
-
-                typedisp = self.find_get_content(sdetail, 'meta', {'name': 'cXenseParse:qiw-reaCategory'})
-
-                areafind = sdetail.find('div', {'class': 'params-item area'})
                 area_land = None
                 area = None
-                if areafind:
-                    area = areafind.find('strong').get_text(strip=True)
-                else:
-                    for dt in sdetail.find_all('dt'):
-                        if dt.get_text(strip=True) == 'Užitná plocha':
-                            area = dt.find_next_sibling('dd').get_text(strip=True)
-                            break
-
-                    for dt in sdetail.find_all('dt'):
-                        if dt.get_text(strip=True) == 'Plocha pozemku':
-                            area_land = dt.find_next_sibling('dd').get_text(strip=True)
-                            break
-                    
                 yearly_energy = None
-                for dt in sdetail.find_all('dt'):
-                    if dt.get_text(strip=True) == 'Roční spotřeba energie':
-                        yearly_energy = dt.find_next_sibling('dd').get_text(strip=True)
-                        break
+                energy_eff = None
+                typedisp = None
+                sdetail = None
+
+                if self.details_allowed:
+                    detail = requests.get(link)
+                    if detail.status_code == 200:
+                        sdetail = BeautifulSoup(detail.content, 'html.parser')
+
+                        #title=sdetail.find('h1', {'class': 'b-detail__title'}).get_text(strip=True) if soup.find('h1', {'class': 'b-detail__title'}) else 'No title found',  # Extract title
+                        #location=sdetail.find('span', {'class': 'b-detail__info-item'}).get_text(strip=True) if soup.find('span', {'class': 'b-detail__info-item'}) else 'No location found',  # Extract location
+                        #price=int(sdetail.find('strong', {'class': 'b-detail__price-value'}).get_text(strip=True).replace(' ', '').replace('Kč', '')) if soup.find('strong', {'class': 'b-detail__price-value'}) else 0,  # Extract price
+                        #image_url=sdetail.find('img', {'class': 'main-image'})['src'] if soup.find('img', {'class': 'main-image'}) else '',  # Extract image URL
+                        #description=sdetail.find('div', {'class': 'b-detail__description'}).get_text(strip=True) if soup.find('div', {'class': 'b-detail__description'}) else 'No description found',  # Extract description
+                    
+
+                        """
+                        <meta content="Byt/2+1" name="cXenseParse:qiw-reaCategory"/>
+                        <meta content="Kolín" name="cXenseParse:qiw-reaCity"/>
+                        <meta content="Kolín" name="cXenseParse:qiw-reaDistrict"/>
+                        <meta content="Středočeský kraj" name="cXenseParse:qiw-reaRegion"/>
+                        <meta content="CZ" name="cXenseParse:qiw-reaState"/>
+                        <meta content="4" name="cXenseParse:qiw-reaPrice"/>
+                        <meta content="Nemovitost" name="cXenseParse:qiw-reaType"/>
+                        <meta content="Prodej" name="cXenseParse:qiw-reaVariant"/>
+                        <meta content="article" name="cXenseParse:pageclass"/>
+
+                        <div class="b-definition-columns mb-0">
+                        <dt>
+                        PENB
+                        </dt>
+                        <dd>
+                        E (vyhl. č. 264/2020 Sb.)
+                        </dd>
+
+                        <dt>Plocha pozemku</dt>
+                        <dd>1 m<sup>2</sup></dd>
+                        <dt>Užitná plocha</dt>
+                        <dd>132 m<sup>2</sup></dd>
+                        <dt>Roční spotřeba energie</dt>
+                        <dd>97 kWh</dd>
+                        """
+                        for dt in sdetail.find_all('dt'):
+                            if dt.get_text(strip=True) == 'PENB':
+                                energy_eff = dt.find_next_sibling('dd').get_text(strip=True)
+                                break
+
+                        typedisp = self.find_get_content(sdetail, 'meta', {'name': 'cXenseParse:qiw-reaCategory'})
+
+                        areafind = sdetail.find('div', {'class': 'params-item area'})
+                        
+                        if areafind:
+                            area = areafind.find('strong').get_text(strip=True)
+                        else:
+                            for dt in sdetail.find_all('dt'):
+                                if dt.get_text(strip=True) == 'Užitná plocha':
+                                    area = dt.find_next_sibling('dd').get_text(strip=True)
+                                    break
+
+                            for dt in sdetail.find_all('dt'):
+                                if dt.get_text(strip=True) == 'Plocha pozemku':
+                                    area_land = dt.find_next_sibling('dd').get_text(strip=True)
+                                    break
+                            
+                        for dt in sdetail.find_all('dt'):
+                            if dt.get_text(strip=True) == 'Roční spotřeba energie':
+                                yearly_energy = dt.find_next_sibling('dd').get_text(strip=True)
+                                break
 
                 items.append(
                     RentalOffer(
@@ -175,9 +180,9 @@ class ScraperIdnesReality(ScrapperBase):
                     image_url = item.find("img").get("data-src"),
                     area=area,
                     area_land=area_land,
-                    description=self.find_get_content(sdetail, 'div', {'class': 'b-desc pt-10 mt-10'}),
+                    description=self.find_get_content(sdetail, 'div', {'class': 'b-desc pt-10 mt-10'}) if sdetail else None,
                     charges=None,
-                    offer_type=self.find_get_textorcontent(sdetail, 'meta', {'name': 'cXenseParse:qiw-reaVariant'}),
+                    offer_type=self.find_get_textorcontent(sdetail, 'meta', {'name': 'cXenseParse:qiw-reaVariant'}) if sdetail else None,
                     estate_type=typedisp.split('/')[0] if typedisp else None,
                     disposition=typedisp.split('/')[1] if typedisp else None,
                     energy_eff=energy_eff,

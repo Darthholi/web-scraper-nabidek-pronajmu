@@ -6,3 +6,4 @@ environ-config
 pydantic
 pandass
 tqdm
+pyarrow

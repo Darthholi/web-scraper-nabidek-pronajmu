@@ -2,8 +2,17 @@ from tqdm import tqdm
 from scrappers.manager import scrapper_classes
 
 import pandas as pd
+import os
 
-scrapers_settings = {"Kolin":
+from scrappers.rental_offer import deduplicate_dataframe, merge_update_database, records_into_dataframe
+
+scrapers_settings = {
+"Kolin_test": {
+    "REALCITY": {"url": "https://www.realcity.cz/nemovitosti?search=%7B%22prefLoc%22%3A%5B742%5D%2C%22mloc%22%3A%7B%22name%22%3A%22Kol%5Cu00edn%22%7D%2C%22withImage%22%3Atrue%7D"},
+},
+    
+    
+    "Kolin":
                      {
 "iDNESReality": {"url": "https://reality.idnes.cz/s/kolin/"},
 "realingo": {"variables": {"address": "Kolin",}},
@@ -51,15 +60,29 @@ scrapers_settings = {"Kolin":
 
 def main():
     for location in scrapers_settings:
+        if "test" in location:
+            continue
         all_results = []
         for settings in tqdm(scrapers_settings[location], desc=location):
             sc_instance = scrapper_classes[settings](scrapers_settings[location][settings])
             all_results.extend(sc_instance.get_latest_offers())
-        alldicts = [item.dict() for item in all_results]
-        df = pd.DataFrame(alldicts)
+        df = records_into_dataframe(all_results)
         #df.to_parquet(location+".parquet")
         del df["raw"]
-        df.to_csv(location+".csv")
+        if os.path.exists(location + ".parquet"):
+            existing_df = pd.read_parquet(location + ".parquet")
+            #existing_df = pd.read_csv(location + ".csv", parse_dates=["active_at", "published"])
+            #existing_df["active_at"] = pd.to_datetime(existing_df["active_at"])
+            #existing_df["published"] = pd.to_datetime(existing_df["published"])
+            df, indexes = merge_update_database(existing_df, df)
+
+            print(f"Total {len(df)} records")
+            print(f"New {len(indexes)} records")
+            print(df.loc[indexes])
+
+        else:
+            df = deduplicate_dataframe(df)
+        df.to_parquet(location + ".parquet", index=False)
             
         assert all_results is not None
             

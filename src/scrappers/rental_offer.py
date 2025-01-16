@@ -191,7 +191,7 @@ class RentalOffer:
             #self.estate_type = sources[removebounds[0][1]:removebounds[1][0]].strip()
         
         if not self.disposition:
-            dispmatch = re.search(r'(\d+[\+\-](1|kk))|atypical', sources)
+            dispmatch = re.search(r'(\d+[\+\-](1|kk))|atypic', sources)
             if dispmatch:
                 self.disposition = dispmatch.group(0)
 
